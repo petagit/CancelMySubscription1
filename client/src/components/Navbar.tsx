@@ -2,9 +2,6 @@ import { Link, useLocation } from "wouter";
 import LogoIcon from "./LogoIcon";
 import { Button } from "@/components/ui/button";
 
-// For development purposes, we'll bypass authentication
-const isDevelopment = true;
-
 export default function Navbar() {
   const [location] = useLocation();
   
@@ -14,48 +11,36 @@ export default function Navbar() {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link href="/">
-              <a className="flex-shrink-0 flex items-center">
+              <span className="flex-shrink-0 flex items-center cursor-pointer">
                 <LogoIcon className="h-8 w-8 text-white" />
                 <span className="ml-2 text-xl font-bold text-white">CANCELMYSUBS</span>
-              </a>
+              </span>
             </Link>
           </div>
           
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
             <div className="flex space-x-4">
               <Link href="/">
-                <a className={`text-white px-3 py-2 text-sm font-medium ${location === '/' ? 'underline' : ''}`}>
+                <span className={`text-white px-3 py-2 text-sm font-medium cursor-pointer ${location === '/' ? 'underline' : ''}`}>
                   home
-                </a>
+                </span>
               </Link>
               <Link href="/dashboard">
-                <a className={`text-white px-3 py-2 text-sm font-medium ${location === '/dashboard' ? 'underline' : ''}`}>
+                <span className={`text-white px-3 py-2 text-sm font-medium cursor-pointer ${location === '/dashboard' ? 'underline' : ''}`}>
                   app
-                </a>
+                </span>
               </Link>
-              <a href="#" className="text-white px-3 py-2 text-sm font-medium">
+              <span className="text-white px-3 py-2 text-sm font-medium cursor-pointer">
                 chrome extension
-              </a>
+              </span>
             </div>
           </div>
           
           <div className="flex items-center">
-            {isDevelopment ? (
-              // Development mode: show avatar placeholder
-              <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-700">
-                <span className="text-xs font-bold">U</span>
-              </div>
-            ) : (
-              // Production mode with Clerk authentication
-              <>
-                {/* These would be wrapped in ClerkProvider in production */}
-                <Link href="/sign-in">
-                  <Button variant="outline" className="text-white border-white">
-                    Sign In
-                  </Button>
-                </Link>
-              </>
-            )}
+            {/* Avatar placeholder for logged-in user */}
+            <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-700">
+              <span className="text-xs font-bold">U</span>
+            </div>
           </div>
         </div>
       </div>
