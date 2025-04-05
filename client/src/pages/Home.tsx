@@ -1,0 +1,63 @@
+import { Button } from "@/components/ui/button";
+import FeatureCard from "@/components/FeatureCard";
+import { useLocation } from "wouter";
+
+// For development purposes, we're bypassing authentication
+const isDevelopment = true;
+
+export default function Home() {
+  const [_, setLocation] = useLocation();
+  
+  // In development, we'll always consider the user as signed in
+  const isSignedIn = isDevelopment ? true : false;
+
+  const handleGetStarted = () => {
+    // In development, always go to dashboard
+    setLocation("/dashboard");
+  };
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className="text-center mb-16">
+        <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">f*ck Subscriptions</h1>
+        <p className="text-xl text-white">
+          stop making corporations rich<br />and getting poor
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+        <FeatureCard 
+          title="No BS" 
+          description={[
+            {bold: true, text: "No ads"},
+            {bold: false, text: "export to excel anytime"}
+          ]} 
+        />
+        
+        <FeatureCard 
+          title="Our deal:" 
+          description={[
+            {bold: true, text: "Pay us $10/mo"},
+            {bold: false, text: "Save over $50/mo on the subcription that you forgot"}
+          ]} 
+        />
+        
+        <FeatureCard 
+          title="AI helper" 
+          description={[
+            {bold: false, text: "to help you find the unsubscribe button"}
+          ]} 
+        />
+      </div>
+
+      <div className="flex justify-center">
+        <Button 
+          onClick={handleGetStarted}
+          className="bg-black border-2 border-white text-white font-bold py-3 px-8 rounded-md hover:bg-gray-800 transition duration-300"
+        >
+          GET STARTED
+        </Button>
+      </div>
+    </div>
+  );
+}
