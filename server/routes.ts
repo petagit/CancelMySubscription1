@@ -1,20 +1,32 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertSubscriptionSchema, statsSchema } from "@shared/schema";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
+import { setupAuth } from "./auth";
+
+// Middleware to ensure a user is authenticated
+function isAuthenticated(req: Request, res: Response, next: NextFunction) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.status(401).json({ message: "Not authenticated" });
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Set up authentication
+  setupAuth(app);
+  
   // API routes - prefix all with /api
   
-  // Get user stats
-  app.get("/api/stats/:userId", async (req: Request, res: Response) => {
+  // Get user stats for the authenticated user
+  app.get("/api/stats", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const userId = parseInt(req.params.userId);
+      const userId = req.user?.id;
       
-      if (isNaN(userId)) {
-        return res.status(400).json({ message: "Invalid user ID" });
+      if (!userId) {
+        return res.status(400).json({ message: "User ID not available" });
       }
       
       const stats = await storage.getSubscriptionStats(userId);
@@ -24,13 +36,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Get all subscriptions for a user
-  app.get("/api/subscriptions/:userId", async (req: Request, res: Response) => {
+  // Get all subscriptions for the authenticated user
+  app.get("/api/subscriptions", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const userId = parseInt(req.params.userId);
+      const userId = req.user?.id;
       
-      if (isNaN(userId)) {
-        return res.status(400).json({ message: "Invalid user ID" });
+      if (!userId) {
+        return res.status(400).json({ message: "User ID not available" });
       }
       
       const subscriptions = await storage.getSubscriptionsByUserId(userId);
@@ -41,9 +53,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Create a new subscription
-  app.post("/api/subscriptions", async (req: Request, res: Response) => {
+  app.post("/api/subscriptions", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const subscriptionData = insertSubscriptionSchema.parse(req.body);
+      const userId = req.user?.id;
+      
+      if (!userId) {
+        return res.status(400).json({ message: "User ID not available" });
+      }
+      
+      const subscriptionData = insertSubscriptionSchema.parse({
+        ...req.body,
+        userId // Ensure the subscription is associated with the authenticated user
+      });
+      
       const subscription = await storage.createSubscription(subscriptionData);
       return res.status(201).json(subscription);
     } catch (error) {
@@ -56,9 +78,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Update a subscription
-  app.patch("/api/subscriptions/:id", async (req: Request, res: Response) => {
+  app.patch("/api/subscriptions/:id", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
+      const userId = req.user?.id;
       
       if (isNaN(id)) {
         return res.status(400).json({ message: "Invalid subscription ID" });
@@ -68,6 +91,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!existingSubscription) {
         return res.status(404).json({ message: "Subscription not found" });
+      }
+      
+      // Make sure the user can only update their own subscriptions
+      if (existingSubscription.userId !== userId) {
+        return res.status(403).json({ message: "Not authorized to update this subscription" });
       }
       
       // Allow partial schema validation
@@ -81,12 +109,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Delete a subscription
-  app.delete("/api/subscriptions/:id", async (req: Request, res: Response) => {
+  app.delete("/api/subscriptions/:id", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
+      const userId = req.user?.id;
       
       if (isNaN(id)) {
         return res.status(400).json({ message: "Invalid subscription ID" });
+      }
+      
+      const existingSubscription = await storage.getSubscriptionById(id);
+      
+      if (!existingSubscription) {
+        return res.status(404).json({ message: "Subscription not found" });
+      }
+      
+      // Make sure the user can only delete their own subscriptions
+      if (existingSubscription.userId !== userId) {
+        return res.status(403).json({ message: "Not authorized to delete this subscription" });
       }
       
       const success = await storage.deleteSubscription(id);
@@ -98,28 +138,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(200).json({ message: "Subscription deleted successfully" });
     } catch (error) {
       return res.status(500).json({ message: "Failed to delete subscription" });
-    }
-  });
-  
-  // Create a user (simplified for demo purposes)
-  app.post("/api/users", async (req: Request, res: Response) => {
-    try {
-      const { username, password } = req.body;
-      
-      if (!username || !password) {
-        return res.status(400).json({ message: "Username and password are required" });
-      }
-      
-      const existingUser = await storage.getUserByUsername(username);
-      
-      if (existingUser) {
-        return res.status(409).json({ message: "Username already exists" });
-      }
-      
-      const user = await storage.createUser({ username, password });
-      return res.status(201).json({ id: user.id, username: user.username });
-    } catch (error) {
-      return res.status(500).json({ message: "Failed to create user" });
     }
   });
 

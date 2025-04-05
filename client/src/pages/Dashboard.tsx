@@ -6,17 +6,12 @@ import AddSubscriptionDialog from "@/components/AddSubscriptionDialog";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import type { Subscription } from "@shared/schema";
-
-// Development mode with mock user
-const mockUser = {
-  id: "1",
-  primaryEmail: "test@example.com"
-};
 
 export default function Dashboard() {
   const [open, setOpen] = useState(false);
-  const userId = 1; // Using a fixed ID for development
+  const { user } = useAuth();
   
   // Get stats
   const { data: stats, isLoading: isLoadingStats } = useQuery<{
@@ -24,7 +19,8 @@ export default function Dashboard() {
     yearlySpending: number;
     activeSubscriptions: number;
   }>({
-    queryKey: [`/api/stats/${userId}`],
+    queryKey: ["/api/stats"],
+    enabled: !!user,
   });
   
   // Get subscriptions
@@ -33,31 +29,29 @@ export default function Dashboard() {
     isLoading: isLoadingSubscriptions, 
     isError: isErrorSubscriptions
   } = useQuery<Subscription[]>({
-    queryKey: [`/api/subscriptions/${userId}`],
+    queryKey: ["/api/subscriptions"],
+    enabled: !!user,
   });
   
   // Add subscription
   const addSubscriptionMutation = useMutation({
-    mutationFn: async (newSubscription: Omit<Subscription, "id" | "isActive">) => {
-      const res = await apiRequest("POST", "/api/subscriptions", {
-        ...newSubscription,
-        userId
-      });
+    mutationFn: async (newSubscription: Omit<Subscription, "id" | "isActive" | "userId">) => {
+      const res = await apiRequest("POST", "/api/subscriptions", newSubscription);
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/subscriptions/${userId}`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/stats/${userId}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/subscriptions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
       setOpen(false);
       toast({
         title: "Success",
         description: "Subscription added successfully",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to add subscription",
+        description: error.message || "Failed to add subscription",
         variant: "destructive",
       });
     }
@@ -69,17 +63,17 @@ export default function Dashboard() {
       await apiRequest("DELETE", `/api/subscriptions/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/subscriptions/${userId}`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/stats/${userId}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/subscriptions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
       toast({
         title: "Success",
         description: "Subscription deleted successfully",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to delete subscription",
+        description: error.message || "Failed to delete subscription",
         variant: "destructive",
       });
     }
