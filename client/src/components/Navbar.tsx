@@ -15,7 +15,7 @@ export default function Navbar() {
   const { user, logoutMutation, isLoading } = useAuth();
   
   return (
-    <nav className="w-full border-b border-accent">
+    <nav className="w-full bg-black text-white border-b border-gray-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
@@ -51,8 +51,8 @@ export default function Navbar() {
             ) : user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-700">
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full text-white hover:bg-gray-800">
+                    <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-white">
                       <span className="text-xs font-bold">{user.username.charAt(0).toUpperCase()}</span>
                     </div>
                   </Button>
@@ -78,7 +78,7 @@ export default function Navbar() {
               </DropdownMenu>
             ) : (
               <Link href="/auth">
-                <Button className="text-white" variant="outline">Login</Button>
+                <Button className="bg-white text-black hover:bg-gray-200" variant="default">Login</Button>
               </Link>
             )}
           </div>

@@ -120,7 +120,7 @@ export default function Dashboard() {
       
       {/* Subscriptions */}
       <div className="mb-8">
-        <h2 className="text-xl font-bold text-white mb-4">Your Subscriptions</h2>
+        <h2 className="text-xl font-bold text-black mb-4">Your Subscriptions</h2>
         
         <SubscriptionsList 
           subscriptions={subscriptionsList} 
@@ -132,7 +132,7 @@ export default function Dashboard() {
         <div className="flex justify-center mt-8">
           <Button 
             onClick={() => setOpen(true)}
-            className="bg-black border-2 border-white text-white font-bold py-3 px-8 rounded-md hover:bg-gray-800 transition duration-300"
+            className="bg-black text-white font-bold py-3 px-8 rounded-md hover:bg-gray-800 transition duration-300"
           >
             ADD NEW SUBSCRIPTION
           </Button>

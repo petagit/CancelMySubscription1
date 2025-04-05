@@ -22,11 +22,11 @@ export default function SubscriptionItem({ subscription, onDelete }: Subscriptio
   };
   
   return (
-    <div className="bg-white p-4 rounded-lg flex justify-between items-center">
+    <div className="bg-white p-4 rounded-lg border border-gray-300 shadow-sm flex justify-between items-center">
       <div>
-        <h3 className="font-medium">{name}</h3>
-        <p className="text-sm text-gray-500">{formatAmount()} - Next billing: {formatDate(new Date(nextBillingDate))}</p>
-        <p className="text-xs text-gray-400">Category: {category}</p>
+        <h3 className="font-medium text-black">{name}</h3>
+        <p className="text-sm text-gray-600">{formatAmount()} - Next billing: {formatDate(new Date(nextBillingDate))}</p>
+        <p className="text-xs text-gray-500">Category: {category}</p>
       </div>
       <div className="flex items-center space-x-2">
         {cancelUrl && (

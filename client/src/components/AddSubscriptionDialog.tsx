@@ -19,7 +19,7 @@ const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
   amount: z.string().min(1, "Amount is required"),
   nextBillingDate: z.string().min(1, "Next billing date is required"),
-  category: z.enum(subscriptionCategories as [string, ...string[]]),
+  category: z.enum(subscriptionCategories as unknown as [string, ...string[]]),
   billingCycle: z.enum(["monthly", "yearly", "quarterly", "weekly"]),
   cancelUrl: z.string().optional(),
 });
@@ -160,10 +160,12 @@ export default function AddSubscriptionDialog({ open, onOpenChange, onSubmit }: 
             />
             
             <div className="flex justify-end space-x-2 pt-4">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button type="button" variant="outline" className="border-black text-black" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button type="submit">Add Subscription</Button>
+              <Button type="submit" className="bg-black text-white hover:bg-gray-800">
+                Add Subscription
+              </Button>
             </div>
           </form>
         </Form>

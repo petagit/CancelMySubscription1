@@ -126,7 +126,7 @@ export default function AuthPage() {
                     />
                     <Button 
                       type="submit" 
-                      className="w-full" 
+                      className="w-full bg-black text-white hover:bg-gray-800" 
                       disabled={loginMutation.isPending}
                     >
                       {loginMutation.isPending ? (
@@ -186,7 +186,7 @@ export default function AuthPage() {
                     />
                     <Button 
                       type="submit" 
-                      className="w-full" 
+                      className="w-full bg-black text-white hover:bg-gray-800" 
                       disabled={registerMutation.isPending}
                     >
                       {registerMutation.isPending ? (
@@ -210,7 +210,7 @@ export default function AuthPage() {
                   Don't have an account?{" "}
                   <Button
                     variant="link"
-                    className="p-0 h-auto font-normal"
+                    className="p-0 h-auto font-normal text-black"
                     onClick={() => setActiveTab("register")}
                   >
                     Sign up
@@ -221,7 +221,7 @@ export default function AuthPage() {
                   Already have an account?{" "}
                   <Button
                     variant="link"
-                    className="p-0 h-auto font-normal"
+                    className="p-0 h-auto font-normal text-black"
                     onClick={() => setActiveTab("login")}
                   >
                     Sign in
@@ -234,7 +234,7 @@ export default function AuthPage() {
       </div>
       
       {/* Hero column */}
-      <div className="hidden md:flex flex-1 bg-primary items-center justify-center p-8 text-primary-foreground">
+      <div className="hidden md:flex flex-1 bg-black text-white items-center justify-center p-8">
         <div className="max-w-md space-y-6">
           <h1 className="text-4xl font-bold tracking-tight">Take control of your subscriptions</h1>
           <p className="text-xl">
@@ -247,7 +247,7 @@ export default function AuthPage() {
               </div>
               <div>
                 <h3 className="font-medium">Reduce Monthly Expenses</h3>
-                <p className="text-primary-foreground/80">Identify and eliminate unused subscriptions to save money</p>
+                <p className="text-white/80">Identify and eliminate unused subscriptions to save money</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -256,7 +256,7 @@ export default function AuthPage() {
               </div>
               <div>
                 <h3 className="font-medium">Never Miss a Payment</h3>
-                <p className="text-primary-foreground/80">Get reminders before you're charged for your subscriptions</p>
+                <p className="text-white/80">Get reminders before you're charged for your subscriptions</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -265,7 +265,7 @@ export default function AuthPage() {
               </div>
               <div>
                 <h3 className="font-medium">Easy Cancellation</h3>
-                <p className="text-primary-foreground/80">Direct links to cancellation pages for quick unsubscribing</p>
+                <p className="text-white/80">Direct links to cancellation pages for quick unsubscribing</p>
               </div>
             </div>
           </div>
