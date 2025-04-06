@@ -71,19 +71,19 @@ export default function Navbar() {
             
             {!isLoaded ? (
               <Loader2 className="h-5 w-5 text-white animate-spin" />
-            ) : isSignedIn && user ? (
+            ) : isSignedIn ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full text-white hover:bg-gray-800">
-                    {user.imageUrl ? (
+                    {user?.imageUrl ? (
                       <img 
                         src={user.imageUrl} 
-                        alt={user.fullName || "User"} 
+                        alt={user?.fullName || "User"} 
                         className="h-8 w-8 rounded-full" 
                       />
                     ) : (
                       <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-white">
-                        <span className="text-xs font-bold">{(user.firstName?.[0] || user.emailAddresses?.[0]?.emailAddress?.[0] || "U").toUpperCase()}</span>
+                        <span className="text-xs font-bold">{(user?.firstName?.[0] || user?.emailAddresses?.[0]?.emailAddress?.[0] || "U").toUpperCase()}</span>
                       </div>
                     )}
                   </Button>
@@ -91,7 +91,7 @@ export default function Navbar() {
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem className="cursor-pointer">
                     <User className="mr-2 h-4 w-4" />
-                    <span>{user.fullName || user.emailAddresses?.[0]?.emailAddress || "User"}</span>
+                    <span>{user?.fullName || user?.emailAddresses?.[0]?.emailAddress || "User"}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     className="cursor-pointer text-red-500 focus:text-red-500" 

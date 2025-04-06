@@ -70,6 +70,9 @@ function App() {
       const envKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 
                      import.meta.env.VITE_CLERK_DEV_PUBLISHABLE_KEY;
       
+      console.log("VITE_CLERK_PUBLISHABLE_KEY:", import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
+      console.log("VITE_CLERK_DEV_PUBLISHABLE_KEY:", import.meta.env.VITE_CLERK_DEV_PUBLISHABLE_KEY);
+      
       if (envKey) {
         console.log("Using Clerk key from environment variables");
         setClerkKey(envKey);
@@ -82,16 +85,22 @@ function App() {
         .then(res => res.json())
         .then(data => {
           if (data.key) {
-            console.log("Using Clerk key from server");
+            console.log("Using Clerk key from server:", data.key);
             setClerkKey(data.key);
           } else {
-            console.warn("No Clerk publishable key found");
-            setError(true);
+            // If there's no key from the server, use a hardcoded key from .env.local
+            // This is a temporary solution until environment variables are properly loaded
+            const hardcodedKey = "pk_test_Z2xvcmlvdXMtc3R1ZC00MS5jbGVyay5hY2NvdW50cy5kZXYk";
+            console.log("Using hardcoded Clerk key as fallback");
+            setClerkKey(hardcodedKey);
           }
         })
         .catch(err => {
           console.error("Failed to fetch Clerk key:", err);
-          setError(true);
+          // Use hardcoded key on error
+          const hardcodedKey = "pk_test_Z2xvcmlvdXMtc3R1ZC00MS5jbGVyay5hY2NvdW50cy5kZXYk";
+          console.log("Using hardcoded Clerk key as fallback after fetch error");
+          setClerkKey(hardcodedKey);
         })
         .finally(() => {
           setLoading(false);
