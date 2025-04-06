@@ -1,5 +1,7 @@
+import logoPath from '../../logoduck.svg';
+
 export default function LogoIcon({ className }: { className?: string }) {
   return (
-    <img src="/logoduck.svg" alt="CancelMySub Logo" className={className} />
+    <img src={logoPath} alt="CancelMySub Logo" className={className} />
   );
 }
