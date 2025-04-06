@@ -26,6 +26,44 @@ const formSchema = z.object({
 
 // Popular subscription services with their details
 const popularServices = [
+  // AI Companies
+  { 
+    name: "ChatGPT Plus (OpenAI)", 
+    amount: "20.00", 
+    category: "Productivity", 
+    billingCycle: "monthly",
+    cancelUrl: "https://help.openai.com/en/articles/6783457-how-do-i-cancel-my-chatgpt-plus-subscription"
+  },
+  { 
+    name: "Microsoft Copilot Pro", 
+    amount: "20.00", 
+    category: "Productivity", 
+    billingCycle: "monthly",
+    cancelUrl: "https://support.microsoft.com/en-us/account-billing/cancel-your-microsoft-subscription-c2c6b0e3-cab3-cb98-d83e-c9ad54620530"
+  },
+  { 
+    name: "Claude (Anthropic)", 
+    amount: "20.00", 
+    category: "Productivity", 
+    billingCycle: "monthly",
+    cancelUrl: "https://claude.ai/settings/subscription"
+  },
+  { 
+    name: "Perplexity Pro", 
+    amount: "20.00", 
+    category: "Productivity", 
+    billingCycle: "monthly",
+    cancelUrl: "https://help.perplexity.ai/hc/en-us/articles/19843070593549-How-do-I-cancel-my-subscription-"
+  },
+  { 
+    name: "Midjourney", 
+    amount: "10.00", 
+    category: "Productivity", 
+    billingCycle: "monthly",
+    cancelUrl: "https://docs.midjourney.com/docs/billing#subscription-cancellation"
+  },
+  
+  // Entertainment
   { 
     name: "Netflix", 
     amount: "15.49", 
@@ -103,6 +141,8 @@ const popularServices = [
     billingCycle: "monthly",
     cancelUrl: "https://www.peacocktv.com/help/account/cancel-plan"
   },
+  
+  // Productivity
   { 
     name: "Microsoft 365", 
     amount: "6.99", 
@@ -124,6 +164,8 @@ const popularServices = [
     billingCycle: "monthly",
     cancelUrl: "https://help.dropbox.com/accounts-billing/billing/cancel-subscription"
   },
+  
+  // Gaming
   { 
     name: "Nintendo Switch Online", 
     amount: "3.99", 
@@ -152,6 +194,8 @@ const popularServices = [
     billingCycle: "monthly",
     cancelUrl: "https://help.ea.com/en/help/subscriptions/cancel-ea-subscription/"
   },
+  
+  // Other
   { 
     name: "Strava", 
     amount: "7.99", 
