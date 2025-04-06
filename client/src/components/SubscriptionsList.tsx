@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import SubscriptionItem from "./SubscriptionItem";
-import { exportToExcel } from "@/lib/excel";
+import { exportToCSV } from "@/lib/excel";
 import { Subscription } from "@shared/schema";
 import { useState } from "react";
 
@@ -18,7 +18,7 @@ export default function SubscriptionsList({
   onDelete
 }: SubscriptionsListProps) {
   const handleExportToExcel = () => {
-    exportToExcel(subscriptions, "subscriptions");
+    exportToCSV(subscriptions, "subscriptions");
   };
 
   if (isLoading) {
