@@ -24,6 +24,45 @@ const formSchema = z.object({
   cancelUrl: z.string().optional(),
 });
 
+// Popular subscription services with their details
+const popularServices = [
+  { 
+    name: "Netflix", 
+    amount: "15.49", 
+    category: "Entertainment", 
+    billingCycle: "monthly",
+    cancelUrl: "https://www.netflix.com/cancelplan"
+  },
+  { 
+    name: "Spotify", 
+    amount: "9.99", 
+    category: "Entertainment", 
+    billingCycle: "monthly",
+    cancelUrl: "https://www.spotify.com/account/subscription/"
+  },
+  { 
+    name: "Disney+", 
+    amount: "7.99", 
+    category: "Entertainment", 
+    billingCycle: "monthly",
+    cancelUrl: "https://www.disneyplus.com/account"
+  },
+  { 
+    name: "Amazon Prime", 
+    amount: "14.99", 
+    category: "Shopping", 
+    billingCycle: "monthly",
+    cancelUrl: "https://www.amazon.com/manageprime"
+  },
+  { 
+    name: "YouTube Premium", 
+    amount: "11.99", 
+    category: "Entertainment", 
+    billingCycle: "monthly",
+    cancelUrl: "https://www.youtube.com/paid_memberships"
+  }
+];
+
 export default function AddSubscriptionDialog({ open, onOpenChange, onSubmit }: AddSubscriptionDialogProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -42,6 +81,14 @@ export default function AddSubscriptionDialog({ open, onOpenChange, onSubmit }: 
     form.reset();
   };
 
+  const addPopularService = (service: typeof popularServices[0]) => {
+    form.setValue("name", service.name);
+    form.setValue("amount", service.amount);
+    form.setValue("category", service.category as any);
+    form.setValue("billingCycle", service.billingCycle as any);
+    form.setValue("cancelUrl", service.cancelUrl);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-white rounded-lg p-6 w-full max-w-md">
@@ -51,6 +98,24 @@ export default function AddSubscriptionDialog({ open, onOpenChange, onSubmit }: 
             Add a new subscription to track your spending.
           </DialogDescription>
         </DialogHeader>
+        
+        <div className="mb-6">
+          <h3 className="text-sm font-medium mb-2">Quick Add Popular Services:</h3>
+          <div className="flex flex-wrap gap-2">
+            {popularServices.map((service) => (
+              <Button
+                key={service.name}
+                type="button"
+                variant="outline"
+                size="sm"
+                className="border-black bg-white text-black hover:bg-gray-100"
+                onClick={() => addPopularService(service)}
+              >
+                {service.name}
+              </Button>
+            ))}
+          </div>
+        </div>
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
@@ -160,7 +225,7 @@ export default function AddSubscriptionDialog({ open, onOpenChange, onSubmit }: 
             />
             
             <div className="flex justify-end space-x-2 pt-4">
-              <Button type="button" variant="outline" className="border-black text-black" onClick={() => onOpenChange(false)}>
+              <Button type="button" variant="outline" className="border-black bg-black text-white hover:bg-gray-800" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
               <Button type="submit" className="bg-black text-white hover:bg-gray-800">

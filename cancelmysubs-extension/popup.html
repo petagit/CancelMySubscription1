@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CancelMySubs</title>
+  <link rel="stylesheet" href="popup.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <img src="icons/icon48.svg" alt="CancelMySubs Logo" class="logo-image" width="48" height="48">
+        <h1>CANCELMYSUBS</h1>
+      </div>
+    </header>
+    
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="subscriptions">MY SUBSCRIPTIONS</button>
+      <button class="tab-btn" data-tab="add">ADD NEW</button>
+      <button class="tab-btn" data-tab="cancel-help">CANCEL HELP</button>
+    </div>
+    
+    <div class="tab-content">
+      <!-- Subscriptions Tab -->
+      <div id="subscriptions" class="tab-pane active">
+        <div class="subscription-total">
+          <div class="total-title">MONTHLY SPENDING</div>
+          <div class="total-cost" id="monthly-total">bash.00</div>
+          <div class="yearly-cost" id="yearly-total">bash.00 per year</div>
+        </div>
+        <div class="subscription-list">
+          <!-- Subscriptions will be loaded dynamically -->
+          <div id="subscriptions-container"></div>
+          <div id="empty-state" class="empty-state">
+            <i class="fas fa-calendar-alt"></i>
+            <h3>NO SUBSCRIPTIONS YET</h3>
+            <p>Start tracking your subscriptions by adding a new one</p>
+          </div>
+        </div>
+        <div class="csv-actions" id="csv-actions" style="display: none;">
+          <button id="export-csv" class="btn-secondary btn-sm">
+            <i class="fas fa-file-export"></i> EXPORT CSV
+          </button>
+          <label class="btn-secondary btn-sm import-label">
+            <i class="fas fa-file-import"></i> IMPORT CSV
+            <input type="file" id="import-csv" accept=".csv" style="display: none;">
+          </label>
+        </div>
+      </div>
+      
+      <!-- Add New Subscription Tab -->
+      <div id="add" class="tab-pane">
+        <h2 class="form-title">ADD NEW SUBSCRIPTION</h2>
+        <form id="subscription-form">
+          <div class="form-group">
+            <label for="service-name">Subscription Name</label>
+            <input type="text" id="service-name" placeholder="e.g. Netflix" required>
+            <div class="popular-services">
+              <label class="popular-services-label">Popular services:</label>
+              <div class="service-buttons" id="popular-services">
+                <!-- Will be populated by JavaScript -->
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="price">Price</label>
+            <input type="number" id="price" placeholder="9.99" step="0.01" min="0" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="billing-cycle">Billing Cycle</label>
+            <select id="billing-cycle" required>
+              <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly</option>
+              <option value="weekly">Weekly</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="service-url">Website URL</label>
+            <input type="url" id="service-url" placeholder="https://www.netflix.com">
+          </div>
+          
+          <div class="form-group">
+            <label for="renewal-date">Next Renewal Date</label>
+            <input type="date" id="renewal-date">
+          </div>
+          
+          <div class="form-group">
+            <label for="notes">Notes</label>
+            <textarea id="notes" placeholder="Additional information"></textarea>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" class="btn-secondary" id="cancel-add">Cancel</button>
+            <button type="submit" class="btn-primary">Save</button>
+          </div>
+        </form>
+      </div>
+      
+      <!-- Cancel Help Tab -->
+      <div id="cancel-help" class="tab-pane">
+        <div class="cancel-help-content">
+          <div id="current-website-info">
+            <h2 class="section-title">CURRENT WEBSITE</h2>
+            <div class="website-display">
+              <span id="current-website">Not available</span>
+            </div>
+          </div>
+          
+          <div class="chatgpt-container">
+            <h2 class="section-title">CANCELLATION INSTRUCTIONS</h2>
+            <div id="cancellation-instructions" class="instructions-container">
+              <div class="empty-state">
+                <i class="fas fa-lightbulb"></i>
+                <h3>NO INSTRUCTIONS YET</h3>
+                <p>Click the button below to generate cancellation steps</p>
+              </div>
+            </div>
+            <button id="get-instructions" class="btn-primary">
+              <i class="fas fa-robot"></i> GET CANCELLATION HELP
+            </button>
+            <div id="loading-indicator" class="loading hidden">
+              <i class="fas fa-spinner fa-spin"></i> GENERATING INSTRUCTIONS...
+            </div>
+          </div>
+          
+          <div class="cancel-buttons-section">
+            <h2 class="section-title">CANCEL BUTTONS</h2>
+            <p class="toggle-container">
+              <label class="toggle">
+                <input type="checkbox" id="highlight-toggle" checked>
+                <span class="toggle-slider"></span>
+              </label>
+              <span>HIGHLIGHT CANCEL BUTTONS</span>
+            </p>
+            <div id="cancel-buttons-info">
+              <p>Found <span id="cancel-buttons-count">0</span> potential cancel elements on this page.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <footer>
+      <p>CANCELMYSUBS v1.0</p>
+    </footer>
+  </div>
+
+  <script src="utils.js"></script>
+  <script src="csv-utils.js"></script>
+  <script src="openai.js"></script>
+  <script src="subscriptions.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
