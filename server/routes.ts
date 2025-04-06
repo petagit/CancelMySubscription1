@@ -5,6 +5,7 @@ import { insertSubscriptionSchema, statsSchema, type Subscription, type Stats } 
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { setupAuth } from "./auth";
+import { setupClerkAuth } from "./clerk-auth";
 
 // TEMPORARY: For testing purposes - allow API access without authentication
 const BYPASS_AUTH = true;
@@ -28,8 +29,14 @@ function isAuthenticated(req: Request, res: Response, next: NextFunction) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Set up authentication
+  // Set up authentication - both traditional and Clerk
   setupAuth(app);
+  setupClerkAuth(app);
+  
+  // Endpoint to get Clerk publishable key
+  app.get("/api/clerk-key", (req, res) => {
+    res.json({ key: process.env.CLERK_DEV_PUBLISHABLE_KEY || "" });
+  });
   
   // API routes - prefix all with /api
   

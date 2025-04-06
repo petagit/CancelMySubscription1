@@ -6,11 +6,13 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  clerkId: text("clerk_id").unique(), // Add Clerk ID for integration
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
+  clerkId: true,
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
