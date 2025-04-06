@@ -15,39 +15,51 @@ import { Loader2 } from "lucide-react";
 import DebugEnvironment from "./debug-env";
 import { ClerkProvider } from "@clerk/clerk-react";
 import { useEffect, useState } from "react";
+import { ClerkErrorBoundary } from "@/components/ClerkErrorBoundary";
 
 // Component to fetch and provide Clerk key
 function ClerkKeyProvider({ children }: { children: React.ReactNode }) {
   const [clerkKey, setClerkKey] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<boolean>(false);
   
   useEffect(() => {
-    // First try to get from environment variables
-    const envKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 
-                  import.meta.env.VITE_CLERK_DEV_PUBLISHABLE_KEY;
-    
-    if (envKey) {
-      setClerkKey(envKey);
-      setLoading(false);
-      return;
-    }
-    
-    // If not available in env, fetch from server
-    fetch('/api/clerk-key')
-      .then(res => res.json())
-      .then(data => {
-        if (data.key) {
-          setClerkKey(data.key);
-        } else {
-          console.warn("No Clerk publishable key found");
-        }
-      })
-      .catch(err => {
-        console.error("Failed to fetch Clerk key:", err);
-      })
-      .finally(() => {
+    try {
+      // First try to get from environment variables
+      const envKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 
+                    import.meta.env.VITE_CLERK_DEV_PUBLISHABLE_KEY;
+      
+      if (envKey) {
+        console.log("Using Clerk key from environment variables");
+        setClerkKey(envKey);
         setLoading(false);
-      });
+        return;
+      }
+      
+      // If not available in env, fetch from server
+      fetch('/api/clerk-key')
+        .then(res => res.json())
+        .then(data => {
+          if (data.key) {
+            console.log("Using Clerk key from server");
+            setClerkKey(data.key);
+          } else {
+            console.warn("No Clerk publishable key found");
+            setError(true);
+          }
+        })
+        .catch(err => {
+          console.error("Failed to fetch Clerk key:", err);
+          setError(true);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    } catch (err) {
+      console.error("Error in Clerk key provider:", err);
+      setError(true);
+      setLoading(false);
+    }
   }, []);
   
   if (loading) {
@@ -59,16 +71,32 @@ function ClerkKeyProvider({ children }: { children: React.ReactNode }) {
     );
   }
   
-  if (!clerkKey) {
-    // Render without Clerk if key is not available
+  // If we have an error or no key, just render without Clerk
+  if (error || !clerkKey) {
+    console.log("Using standard authentication (Clerk temporarily disabled)");
     return <>{children}</>;
   }
   
-  return (
-    <ClerkProvider publishableKey={clerkKey}>
-      {children}
-    </ClerkProvider>
-  );
+  // Wrap in error boundary to catch Clerk initialization errors
+  try {
+    return (
+      <ClerkProvider 
+        publishableKey={clerkKey}
+        appearance={{
+          baseTheme: undefined, // Use "dark" or undefined for light
+          elements: {
+            formButtonPrimary: "bg-black hover:bg-gray-800 text-white",
+            card: "shadow-none"
+          }
+        }}
+      >
+        {children}
+      </ClerkProvider>
+    );
+  } catch (err) {
+    console.error("Error initializing ClerkProvider:", err);
+    return <>{children}</>;
+  }
 }
 
 // Loading component for authentication
@@ -100,12 +128,14 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <DebugEnvironment />
-      <ClerkKeyProvider>
-        <AuthProvider>
-          <Router />
-          <Toaster />
-        </AuthProvider>
-      </ClerkKeyProvider>
+      <ClerkErrorBoundary>
+        <ClerkKeyProvider>
+          <AuthProvider>
+            <Router />
+            <Toaster />
+          </AuthProvider>
+        </ClerkKeyProvider>
+      </ClerkErrorBoundary>
     </QueryClientProvider>
   );
 }

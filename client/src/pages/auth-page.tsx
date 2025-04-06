@@ -55,18 +55,28 @@ export default function AuthPage() {
       
       // If sign-in with Clerk is available, use it
       if (signIn) {
-        await signIn.authenticateWithRedirect({
-          strategy: "oauth_google",
-          redirectUrl: "/dashboard",
-          redirectUrlComplete: "/dashboard"
-        });
+        try {
+          console.log("Starting Google authentication with Clerk");
+          
+          // Use a more basic configuration to avoid issues
+          await signIn.authenticateWithRedirect({
+            strategy: "oauth_google",
+            redirectUrl: window.location.origin + "/dashboard",
+            redirectUrlComplete: window.location.origin + "/dashboard"
+          });
+          
+          // The above redirects, so code below won't execute unless there's an error
+        } catch (clerkError) {
+          console.error("Clerk authentication error:", clerkError);
+          setAuthError("An error occurred during Google sign in. Please use username/password instead.");
+        }
       } else {
         console.warn("Clerk signIn is not available, falling back to standard auth");
-        setAuthError("Google sign in is currently unavailable. Please try again later.");
+        setAuthError("Google sign in is temporarily unavailable. Please use username/password login.");
       }
     } catch (error) {
       console.error("Google sign in error:", error);
-      setAuthError("Failed to sign in with Google. Please try again.");
+      setAuthError("Failed to sign in with Google. Please try the standard login method.");
     } finally {
       setIsClerkLoading(false);
     }
