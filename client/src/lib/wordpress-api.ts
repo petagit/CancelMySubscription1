@@ -31,8 +31,8 @@ export interface WPCategory {
 
 // WordPress API configuration
 export const WORDPRESS_API_CONFIG = {
-  // Replace with your actual WordPress site URL when ready to connect
-  baseUrl: import.meta.env.VITE_WORDPRESS_API_URL || 'https://your-wordpress-site.com/wp-json/wp/v2',
+  // Use the provided WordPress API URL
+  baseUrl: import.meta.env.VITE_WORDPRESS_API_URL || 'https://cancel-my-subs-e075f1.ingress-erytho.ewp.live/wp-json/wp/v2',
   
   // Number of posts to fetch per page
   perPage: 9,
@@ -66,6 +66,7 @@ export const WORDPRESS_API_CONFIG = {
  */
 export async function getPosts(page = 1, perPage = WORDPRESS_API_CONFIG.perPage): Promise<WPPost[]> {
   try {
+    console.log(`Fetching WordPress posts from: ${WORDPRESS_API_CONFIG.baseUrl}/posts`);
     const url = new URL(`${WORDPRESS_API_CONFIG.baseUrl}/posts`);
     
     // Add query parameters
@@ -77,13 +78,20 @@ export async function getPosts(page = 1, perPage = WORDPRESS_API_CONFIG.perPage)
       url.searchParams.append('_embed', 'true');
     }
     
-    const response = await fetch(url.toString());
+    const finalUrl = url.toString();
+    console.log(`Fetching posts from: ${finalUrl}`);
+    
+    const response = await fetch(finalUrl);
     
     if (!response.ok) {
-      throw new Error(`WordPress API error: ${response.status}`);
+      const errorText = await response.text();
+      console.error(`WordPress API error ${response.status}: ${errorText}`);
+      throw new Error(`WordPress API error: ${response.status} - ${errorText}`);
     }
     
-    return await response.json();
+    const data = await response.json();
+    console.log(`Successfully fetched ${data.length} posts`);
+    return data;
   } catch (error) {
     console.error('Error fetching WordPress posts:', error);
     throw error;
@@ -95,6 +103,7 @@ export async function getPosts(page = 1, perPage = WORDPRESS_API_CONFIG.perPage)
  */
 export async function getPostBySlug(slug: string): Promise<WPPost> {
   try {
+    console.log(`Fetching WordPress post with slug: ${slug}`);
     const url = new URL(`${WORDPRESS_API_CONFIG.baseUrl}/posts`);
     
     // Add query parameters to find post by slug
@@ -105,18 +114,25 @@ export async function getPostBySlug(slug: string): Promise<WPPost> {
       url.searchParams.append('_embed', 'true');
     }
     
-    const response = await fetch(url.toString());
+    const finalUrl = url.toString();
+    console.log(`Fetching post from: ${finalUrl}`);
+    
+    const response = await fetch(finalUrl);
     
     if (!response.ok) {
-      throw new Error(`WordPress API error: ${response.status}`);
+      const errorText = await response.text();
+      console.error(`WordPress API error ${response.status}: ${errorText}`);
+      throw new Error(`WordPress API error: ${response.status} - ${errorText}`);
     }
     
     const posts = await response.json();
     
     if (!posts || !posts.length) {
+      console.error(`Post with slug "${slug}" not found`);
       throw new Error(`Post with slug "${slug}" not found`);
     }
     
+    console.log(`Successfully fetched post with slug: ${slug}`);
     // Return the first post (should be only one with this slug)
     return posts[0];
   } catch (error) {
@@ -130,18 +146,26 @@ export async function getPostBySlug(slug: string): Promise<WPPost> {
  */
 export async function getCategories(): Promise<WPCategory[]> {
   try {
+    console.log(`Fetching WordPress categories`);
     const url = new URL(`${WORDPRESS_API_CONFIG.baseUrl}/categories`);
     
     // Add query parameters
     url.searchParams.append('_fields', 'id,name,slug');
     
-    const response = await fetch(url.toString());
+    const finalUrl = url.toString();
+    console.log(`Fetching categories from: ${finalUrl}`);
+    
+    const response = await fetch(finalUrl);
     
     if (!response.ok) {
-      throw new Error(`WordPress API error: ${response.status}`);
+      const errorText = await response.text();
+      console.error(`WordPress API error ${response.status}: ${errorText}`);
+      throw new Error(`WordPress API error: ${response.status} - ${errorText}`);
     }
     
-    return await response.json();
+    const categories = await response.json();
+    console.log(`Successfully fetched ${categories.length} categories`);
+    return categories;
   } catch (error) {
     console.error('Error fetching WordPress categories:', error);
     throw error;

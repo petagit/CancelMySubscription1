@@ -19,7 +19,7 @@ export default function Blog() {
         return [];
       }
     },
-    enabled: false, // Disable until real API is connected by user
+    // Enabled - connected to the WordPress API
   });
 
   return (

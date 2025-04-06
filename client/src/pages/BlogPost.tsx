@@ -19,7 +19,7 @@ export default function BlogPost() {
         throw error;
       }
     },
-    enabled: slug !== undefined && false, // Disable until real API is connected by user, but enabled when slug is available
+    enabled: slug !== undefined, // Enabled when slug is available, connected to WordPress API
   });
 
   return (

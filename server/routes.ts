@@ -33,6 +33,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
   setupClerkAuth(app);
   
+  // Serve SEO files from the public directory
+  app.get("/sitemap.xml", (req, res) => {
+    res.sendFile("sitemap.xml", { root: './public' });
+  });
+  
+  app.get("/robots.txt", (req, res) => {
+    res.sendFile("robots.txt", { root: './public' });
+  });
+  
   // Endpoint to get Clerk publishable key
   app.get("/api/clerk-key", (req, res) => {
     res.json({ key: process.env.CLERK_DEV_PUBLISHABLE_KEY || "" });
