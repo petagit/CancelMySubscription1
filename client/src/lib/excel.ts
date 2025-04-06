@@ -23,33 +23,59 @@ export function exportToCSV(subscriptions: Subscription[], filename: string = "c
     return;
   }
   
-  // Format the data for CSV
-  const headers = ["Name", "Amount", "Billing Cycle", "Next Billing Date", "Category", "Cancel URL"];
-  const csvContent = [
-    headers.join(","),
-    ...subscriptions.map(sub => [
-      // Handle fields that might contain commas by wrapping in quotes
-      `"${sub.name.replace(/"/g, '""')}"`,
-      `"$${Number(sub.amount).toFixed(2)}"`,
-      `"${sub.billingCycle}"`,
-      `"${formatDate(new Date(sub.nextBillingDate))}"`,
-      `"${sub.category}"`,
-      `"${sub.cancelUrl?.replace(/"/g, '""') || ''}"`,
-    ].join(","))
-  ].join("\n");
+  console.log("Starting CSV export with", subscriptions.length, "subscriptions");
   
-  // Create a Blob and download link
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  
-  const link = document.createElement("a");
-  link.setAttribute("href", url);
-  link.setAttribute("download", `${filename}-${new Date().toISOString().slice(0, 10)}.csv`);
-  link.style.visibility = "hidden";
-  
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  try {
+    // Format the data for CSV
+    const headers = ["Name", "Amount", "Billing Cycle", "Next Billing Date", "Category", "Cancel URL"];
+    const csvContent = [
+      headers.join(","),
+      ...subscriptions.map(sub => [
+        // Handle fields that might contain commas by wrapping in quotes
+        `"${(sub.name || '').replace(/"/g, '""')}"`,
+        `"$${Number(sub.amount || 0).toFixed(2)}"`,
+        `"${sub.billingCycle || 'monthly'}"`,
+        `"${formatDate(new Date(sub.nextBillingDate || new Date()))}"`,
+        `"${sub.category || 'Other'}"`,
+        `"${(sub.cancelUrl || '').replace(/"/g, '""')}"`,
+      ].join(","))
+    ].join("\n");
+    
+    console.log("CSV content generated successfully");
+    
+    // Create a Blob and download link
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    
+    console.log("Blob URL created:", url.substring(0, 30) + "...");
+    
+    // Create a visible button that the user can click
+    const downloadButton = document.createElement("a");
+    downloadButton.href = url;
+    downloadButton.download = `${filename}-${new Date().toISOString().slice(0, 10)}.csv`;
+    downloadButton.innerText = "Download CSV";
+    downloadButton.style.display = "none";
+    document.body.appendChild(downloadButton);
+    
+    console.log("Download link created and appended to document");
+    
+    // Trigger the download automatically
+    downloadButton.click();
+    console.log("Download link clicked");
+    
+    // Clean up after a short delay
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+      document.body.removeChild(downloadButton);
+      console.log("Download cleanup completed");
+    }, 100);
+    
+    return true;
+  } catch (error) {
+    console.error("Error exporting CSV:", error);
+    alert("Failed to export CSV: " + (error instanceof Error ? error.message : String(error)));
+    return false;
+  }
 }
 
 export function importFromCSV(file: File): Promise<Partial<SubscriptionInput>[]> {

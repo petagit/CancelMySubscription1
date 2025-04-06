@@ -8,11 +8,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Loader2, User, LogOut } from "lucide-react";
+import { Loader2, User, LogOut, Info } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function Navbar() {
   const [location] = useLocation();
   const { user, logoutMutation, isLoading } = useAuth();
+  const [isGuestUser, setIsGuestUser] = useState(false);
+  
+  // Check if user is in guest mode
+  useEffect(() => {
+    const guestId = localStorage.getItem("guestId");
+    setIsGuestUser(!user && !!guestId);
+  }, [user]);
   
   return (
     <nav className="w-full bg-black text-white border-b border-gray-700">
@@ -46,6 +54,14 @@ export default function Navbar() {
           </div>
           
           <div className="flex items-center">
+            {/* Guest mode indicator */}
+            {isGuestUser && (
+              <div className="mr-4 flex items-center bg-gray-700 px-3 py-1 rounded-full">
+                <Info className="h-4 w-4 mr-2 text-gray-300" />
+                <span className="text-sm text-gray-300">Guest Mode</span>
+              </div>
+            )}
+            
             {isLoading ? (
               <Loader2 className="h-5 w-5 text-white animate-spin" />
             ) : user ? (

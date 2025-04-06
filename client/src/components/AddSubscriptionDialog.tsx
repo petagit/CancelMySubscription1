@@ -182,7 +182,12 @@ export default function AddSubscriptionDialog({ open, onOpenChange, onSubmit }: 
   });
 
   const handleSubmit = (data: z.infer<typeof formSchema>) => {
-    onSubmit(data);
+    // Add userId and guestId - will be filled in by the API if needed
+    onSubmit({
+      ...data,
+      userId: null, // Will be filled by the server if user is authenticated
+      guestId: null // Will be filled by the server for guest users
+    });
     form.reset();
   };
 

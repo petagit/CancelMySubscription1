@@ -28,7 +28,8 @@ export const subscriptionCategories = [
 // Subscriptions table
 export const subscriptions = pgTable("subscriptions", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
+  userId: integer("user_id"), // No longer notNull to allow guest users
+  guestId: text("guest_id"), // New field to track guest users
   name: text("name").notNull(),
   amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
   billingCycle: text("billing_cycle").notNull().default("monthly"),
@@ -42,6 +43,7 @@ export const subscriptions = pgTable("subscriptions", {
 export const insertSubscriptionSchema = createInsertSchema(subscriptions)
   .pick({
     userId: true,
+    guestId: true,
     name: true,
     amount: true,
     billingCycle: true,
@@ -50,6 +52,8 @@ export const insertSubscriptionSchema = createInsertSchema(subscriptions)
     cancelUrl: true,
   })
   .extend({
+    userId: z.number().nullable().optional(),
+    guestId: z.string().nullable().optional(),
     category: z.enum(subscriptionCategories),
     amount: z.string().refine(val => !isNaN(parseFloat(val)), {
       message: "Amount must be a valid number",

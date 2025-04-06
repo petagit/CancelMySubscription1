@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import StatsCard from "@/components/StatsCard";
 import SubscriptionsList from "@/components/SubscriptionsList";
@@ -15,14 +15,36 @@ export default function Dashboard() {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
   
+  // Use persistent guest ID for unauthenticated users
+  const [guestId, setGuestId] = useState<string>(() => {
+    // Try to get from localStorage first
+    const storedGuestId = localStorage.getItem("guestId");
+    if (storedGuestId) return storedGuestId;
+    
+    // Create a new guestId if none exists
+    const newGuestId = `guest-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    localStorage.setItem("guestId", newGuestId);
+    return newGuestId;
+  });
+  
+  // Build API query parameters
+  const getQueryParams = () => {
+    if (user) return ""; // Authenticated user doesn't need guestId
+    return `?guestId=${guestId}`; // Guest user needs guestId
+  };
+  
   // Get stats
   const { data: stats, isLoading: isLoadingStats } = useQuery<{
     monthlySpending: number;
     yearlySpending: number;
     activeSubscriptions: number;
   }>({
-    queryKey: ["/api/stats"],
-    enabled: !!user,
+    queryKey: ["/api/stats", user ? "authenticated" : guestId],
+    queryFn: async () => {
+      const response = await fetch(`/api/stats${getQueryParams()}`);
+      if (!response.ok) throw new Error("Failed to fetch stats");
+      return response.json();
+    }
   });
   
   // Get subscriptions
@@ -31,19 +53,29 @@ export default function Dashboard() {
     isLoading: isLoadingSubscriptions, 
     isError: isErrorSubscriptions
   } = useQuery<Subscription[]>({
-    queryKey: ["/api/subscriptions"],
-    enabled: !!user,
+    queryKey: ["/api/subscriptions", user ? "authenticated" : guestId],
+    queryFn: async () => {
+      const response = await fetch(`/api/subscriptions${getQueryParams()}`);
+      if (!response.ok) throw new Error("Failed to fetch subscriptions");
+      return response.json();
+    }
   });
   
   // Add subscription
   const addSubscriptionMutation = useMutation({
-    mutationFn: async (newSubscription: Omit<Subscription, "id" | "isActive" | "userId">) => {
-      const res = await apiRequest("POST", "/api/subscriptions", newSubscription);
+    mutationFn: async (newSubscription: Omit<InsertSubscription, "id" | "isActive">) => {
+      // Add guestId for unauthenticated users
+      const subscriptionData = {
+        ...newSubscription,
+        guestId: user ? null : guestId // Only use guestId for unauthenticated users
+      };
+      
+      const res = await apiRequest("POST", "/api/subscriptions", subscriptionData);
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/subscriptions"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/subscriptions", user ? "authenticated" : guestId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats", user ? "authenticated" : guestId] });
       setOpen(false);
       toast({
         title: "Success",
@@ -62,11 +94,11 @@ export default function Dashboard() {
   // Delete subscription
   const deleteSubscriptionMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/subscriptions/${id}`);
+      await apiRequest("DELETE", `/api/subscriptions/${id}${getQueryParams()}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/subscriptions"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/subscriptions", user ? "authenticated" : guestId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats", user ? "authenticated" : guestId] });
       toast({
         title: "Success",
         description: "Subscription deleted successfully",
@@ -113,12 +145,16 @@ export default function Dashboard() {
       return;
     }
     
-    exportToCSV(subscriptionsList, "cancelmysubs-export");
+    console.log("Exporting subscriptions:", subscriptionsList);
+    const result = exportToCSV(subscriptionsList, "cancelmysubs-export");
     
-    toast({
-      title: "Export successful",
-      description: "Your subscriptions have been exported to CSV",
-    });
+    if (result) {
+      toast({
+        title: "Export successful",
+        description: "Your subscriptions have been exported to CSV",
+      });
+    }
+    // If export fails, the exportToCSV function will show an alert
   };
 
   const handleImportClick = () => {
@@ -132,23 +168,36 @@ export default function Dashboard() {
     try {
       const importedSubscriptions = await importFromCSV(file);
       
-      // Add userId to each subscription
-      const subscriptionsWithUserId = importedSubscriptions.map(sub => ({
-        ...sub,
-        userId: user?.id || 1 // Use 1 as default for testing mode
-      }));
+      // Prepare subscriptions with the right identifiers
+      const preparedSubscriptions = importedSubscriptions.map(sub => {
+        if (user) {
+          // For authenticated users, add userId
+          return {
+            ...sub,
+            userId: user.id,
+            guestId: null
+          };
+        } else {
+          // For guest users, add guestId
+          return {
+            ...sub,
+            userId: null,
+            guestId: guestId
+          };
+        }
+      });
       
       // Confirm import
-      if (subscriptionsWithUserId.length > 0) {
+      if (preparedSubscriptions.length > 0) {
         const confirmImport = window.confirm(
-          `Import ${subscriptionsWithUserId.length} subscriptions?`
+          `Import ${preparedSubscriptions.length} subscriptions?`
         );
         
         if (confirmImport) {
           // Add each subscription
           let successCount = 0;
           
-          for (const sub of subscriptionsWithUserId) {
+          for (const sub of preparedSubscriptions) {
             try {
               // Format the data for API call
               const subData = {
@@ -157,7 +206,8 @@ export default function Dashboard() {
                 billingCycle: sub.billingCycle || 'monthly',
                 nextBillingDate: sub.nextBillingDate || new Date(),
                 category: sub.category || 'Other',
-                userId: sub.userId || 1,
+                userId: sub.userId,
+                guestId: sub.guestId,
                 cancelUrl: sub.cancelUrl || null
               };
               
@@ -170,7 +220,7 @@ export default function Dashboard() {
           
           toast({
             title: "Import successful",
-            description: `Imported ${successCount} out of ${subscriptionsWithUserId.length} subscriptions`,
+            description: `Imported ${successCount} out of ${preparedSubscriptions.length} subscriptions`,
           });
         }
       }

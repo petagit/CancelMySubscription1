@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertSubscriptionSchema, statsSchema } from "@shared/schema";
+import { insertSubscriptionSchema, statsSchema, type Subscription, type Stats } from "@shared/schema";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { setupAuth } from "./auth";
@@ -33,32 +33,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // API routes - prefix all with /api
   
-  // Get user stats for the authenticated user
+  // Get user stats for the authenticated user or guest
   app.get("/api/stats", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const userId = req.user?.id;
+      // Check if a guestId was provided in the query parameters
+      const guestId = req.query.guestId as string | undefined;
       
-      if (!userId) {
-        return res.status(400).json({ message: "User ID not available" });
+      let stats: Stats;
+      
+      if (userId) {
+        // Get stats for authenticated user
+        stats = await storage.getSubscriptionStats(userId);
+      } else if (guestId) {
+        // Get stats for guest user
+        stats = await storage.getSubscriptionStatsForGuest(guestId);
+      } else if (BYPASS_AUTH) {
+        // In bypass mode, get test user stats
+        stats = await storage.getSubscriptionStats(1);
+      } else {
+        return res.status(400).json({ message: "Either user authentication or guestId is required" });
       }
       
-      const stats = await storage.getSubscriptionStats(userId);
       return res.status(200).json(stats);
     } catch (error) {
       return res.status(500).json({ message: "Failed to fetch stats" });
     }
   });
   
-  // Get all subscriptions for the authenticated user
+  // Get all subscriptions for the authenticated user or guest
   app.get("/api/subscriptions", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const userId = req.user?.id;
+      // Check if a guestId was provided in the query parameters
+      const guestId = req.query.guestId as string | undefined;
       
-      if (!userId) {
-        return res.status(400).json({ message: "User ID not available" });
+      let subscriptions: Subscription[] = [];
+      
+      if (userId) {
+        // Fetch subscriptions for authenticated user
+        subscriptions = await storage.getSubscriptionsByUserId(userId);
+      } else if (guestId) {
+        // Fetch subscriptions for guest user
+        subscriptions = await storage.getSubscriptionsByGuestId(guestId);
+      } else if (BYPASS_AUTH) {
+        // In bypass mode, get test user subscriptions
+        subscriptions = await storage.getSubscriptionsByUserId(1);
+      } else {
+        return res.status(400).json({ message: "Either user authentication or guestId is required" });
       }
       
-      const subscriptions = await storage.getSubscriptionsByUserId(userId);
       return res.status(200).json(subscriptions);
     } catch (error) {
       return res.status(500).json({ message: "Failed to fetch subscriptions" });
@@ -70,13 +94,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user?.id;
       
-      if (!userId) {
-        return res.status(400).json({ message: "User ID not available" });
-      }
+      // Generate a guest ID if needed - either use from request or create a new one
+      const guestId = !userId ? (req.body.guestId || `guest-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`) : null;
       
       const subscriptionData = insertSubscriptionSchema.parse({
         ...req.body,
-        userId // Ensure the subscription is associated with the authenticated user
+        userId, // Will be null for guest users
+        guestId // Will be set for guest users
       });
       
       const subscription = await storage.createSubscription(subscriptionData);
@@ -95,6 +119,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const userId = req.user?.id;
+      // Check if a guestId was provided in the query parameters
+      const guestId = req.query.guestId as string | undefined;
       
       if (isNaN(id)) {
         return res.status(400).json({ message: "Invalid subscription ID" });
@@ -106,8 +132,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Subscription not found" });
       }
       
-      // Make sure the user can only update their own subscriptions
-      if (existingSubscription.userId !== userId) {
+      // Check authorization: user can update their own subscriptions or guest can update their own
+      let authorized = false;
+      
+      if (userId && existingSubscription.userId === userId) {
+        authorized = true;
+      } else if (guestId && existingSubscription.guestId === guestId) {
+        authorized = true;
+      } else if (BYPASS_AUTH) {
+        authorized = true;
+      }
+      
+      if (!authorized) {
         return res.status(403).json({ message: "Not authorized to update this subscription" });
       }
       
@@ -126,6 +162,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const userId = req.user?.id;
+      // Check if a guestId was provided in the query parameters
+      const guestId = req.query.guestId as string | undefined;
       
       if (isNaN(id)) {
         return res.status(400).json({ message: "Invalid subscription ID" });
@@ -137,8 +175,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Subscription not found" });
       }
       
-      // Make sure the user can only delete their own subscriptions
-      if (existingSubscription.userId !== userId) {
+      // Check authorization: user can delete their own subscriptions or guest can delete their own
+      let authorized = false;
+      
+      if (userId && existingSubscription.userId === userId) {
+        authorized = true;
+      } else if (guestId && existingSubscription.guestId === guestId) {
+        authorized = true;
+      } else if (BYPASS_AUTH) {
+        authorized = true;
+      }
+      
+      if (!authorized) {
         return res.status(403).json({ message: "Not authorized to delete this subscription" });
       }
       

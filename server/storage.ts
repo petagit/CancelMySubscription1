@@ -17,10 +17,12 @@ export interface IStorage {
   // Subscription related methods
   createSubscription(subscription: InsertSubscription): Promise<Subscription>;
   getSubscriptionsByUserId(userId: number): Promise<Subscription[]>;
+  getSubscriptionsByGuestId(guestId: string): Promise<Subscription[]>;
   getSubscriptionById(id: number): Promise<Subscription | undefined>;
   updateSubscription(id: number, subscription: Partial<InsertSubscription>): Promise<Subscription | undefined>;
   deleteSubscription(id: number): Promise<boolean>;
   getSubscriptionStats(userId: number): Promise<Stats>;
+  getSubscriptionStatsForGuest(guestId: string): Promise<Stats>;
   
   // Session store for authentication
   sessionStore: session.Store;
@@ -104,6 +106,13 @@ export class DatabaseStorage implements IStorage {
     return result.length > 0;
   }
 
+  async getSubscriptionsByGuestId(guestId: string): Promise<Subscription[]> {
+    return await db
+      .select()
+      .from(subscriptions)
+      .where(eq(subscriptions.guestId, guestId));
+  }
+  
   async getSubscriptionStats(userId: number): Promise<Stats> {
     // Get all active subscriptions for the user
     const userSubscriptions = await db
@@ -114,10 +123,27 @@ export class DatabaseStorage implements IStorage {
         eq(subscriptions.isActive, true)
       ));
     
+    return this.calculateStats(userSubscriptions);
+  }
+  
+  async getSubscriptionStatsForGuest(guestId: string): Promise<Stats> {
+    // Get all active subscriptions for the guest user
+    const guestSubscriptions = await db
+      .select()
+      .from(subscriptions)
+      .where(and(
+        eq(subscriptions.guestId, guestId),
+        eq(subscriptions.isActive, true)
+      ));
+    
+    return this.calculateStats(guestSubscriptions);
+  }
+  
+  private calculateStats(subscriptionsList: Subscription[]): Stats {
     let monthlySpending = 0;
     let yearlySpending = 0;
     
-    userSubscriptions.forEach(subscription => {
+    subscriptionsList.forEach(subscription => {
       const amount = Number(subscription.amount);
       
       switch(subscription.billingCycle) {
@@ -143,7 +169,7 @@ export class DatabaseStorage implements IStorage {
     return {
       monthlySpending,
       yearlySpending,
-      activeSubscriptions: userSubscriptions.length
+      activeSubscriptions: subscriptionsList.length
     };
   }
 }
