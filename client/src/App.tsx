@@ -11,13 +11,11 @@ import BlogPost from "@/pages/BlogPost";
 import Layout from "@/components/Layout";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
-import { ClerkProvider, ClerkLoading } from "@clerk/clerk-react";
 import { Loader2 } from "lucide-react";
-import { dark } from "@clerk/themes";
 import DebugEnvironment from "./debug-env";
 
-// Loading component while Clerk initializes
-function ClerkLoadingFallback() {
+// Loading component for authentication
+function AuthLoadingFallback() {
   return (
     <div className="flex items-center justify-center min-h-screen">
       <Loader2 className="h-12 w-12 animate-spin text-black" />
@@ -45,9 +43,6 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <DebugEnvironment />
-      <ClerkLoading>
-        <ClerkLoadingFallback />
-      </ClerkLoading>
       <AuthProvider>
         <Router />
         <Toaster />
