@@ -47,6 +47,11 @@ export default function Navbar() {
                   APP
                 </span>
               </Link>
+              <Link href="/blog">
+                <span className={`text-white px-3 py-2 text-base font-medium uppercase tracking-wide cursor-pointer ${location.startsWith('/blog') ? 'underline' : ''}`}>
+                  BLOG
+                </span>
+              </Link>
               <span className="text-white px-3 py-2 text-base font-medium uppercase tracking-wide cursor-pointer">
                 CHROME EXTENSION
               </span>
