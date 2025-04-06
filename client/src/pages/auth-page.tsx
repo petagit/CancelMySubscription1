@@ -18,7 +18,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2 } from "lucide-react";
 import LogoIcon from "@/components/LogoIcon";
-import { useSignIn, useSignUp } from "@clerk/clerk-react";
+// Temporarily disabled Clerk auth
+// import { useSignIn, useSignUp } from "@clerk/clerk-react";
 
 const loginSchema = z.object({
   username: z.string().min(3, {
@@ -42,44 +43,13 @@ export default function AuthPage() {
   const [, setLocation] = useLocation();
   const { user, loginMutation, registerMutation, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<string>("login");
+  // Temporarily disabled Clerk loading state
   const [isClerkLoading, setIsClerkLoading] = useState<boolean>(false);
-  const { signIn } = useSignIn();
-  const { signUp } = useSignUp();
   const [authError, setAuthError] = useState<string | null>(null);
 
-  // Function to handle Google OAuth login
+  // Temporarily disabled Google OAuth login
   const handleGoogleLogin = async () => {
-    try {
-      setIsClerkLoading(true);
-      setAuthError(null);
-      
-      // If sign-in with Clerk is available, use it
-      if (signIn) {
-        try {
-          console.log("Starting Google authentication with Clerk");
-          
-          // Use a more basic configuration to avoid issues
-          await signIn.authenticateWithRedirect({
-            strategy: "oauth_google",
-            redirectUrl: window.location.origin + "/dashboard",
-            redirectUrlComplete: window.location.origin + "/dashboard"
-          });
-          
-          // The above redirects, so code below won't execute unless there's an error
-        } catch (clerkError) {
-          console.error("Clerk authentication error:", clerkError);
-          setAuthError("An error occurred during Google sign in. Please use username/password instead.");
-        }
-      } else {
-        console.warn("Clerk signIn is not available, falling back to standard auth");
-        setAuthError("Google sign in is temporarily unavailable. Please use username/password login.");
-      }
-    } catch (error) {
-      console.error("Google sign in error:", error);
-      setAuthError("Failed to sign in with Google. Please try the standard login method.");
-    } finally {
-      setIsClerkLoading(false);
-    }
+    setAuthError("Google sign in is temporarily unavailable. Please use username/password login.");
   };
 
   // Redirect if already logged in
@@ -187,6 +157,7 @@ export default function AuthPage() {
                   </div>
                 )}
                 
+                {/* Temporarily hiding Google sign-in until Clerk is properly configured 
                 <div className="mt-4 relative">
                   <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t border-gray-300" />
@@ -213,6 +184,7 @@ export default function AuthPage() {
                   )}
                   {isClerkLoading ? "Signing in..." : "Sign in with Google"}
                 </Button>
+                */}
               </TabsContent>
               
               <TabsContent value="register" className="mt-4">
@@ -280,6 +252,7 @@ export default function AuthPage() {
                   </div>
                 )}
                 
+                {/* Temporarily hiding Google sign-in until Clerk is properly configured 
                 <div className="mt-4 relative">
                   <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t border-gray-300" />
@@ -306,6 +279,7 @@ export default function AuthPage() {
                   )}
                   {isClerkLoading ? "Signing up..." : "Sign up with Google"}
                 </Button>
+                */}
               </TabsContent>
             </Tabs>
           </CardContent>

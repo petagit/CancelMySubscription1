@@ -77,7 +77,12 @@ function ClerkKeyProvider({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
   
-  // Wrap in error boundary to catch Clerk initialization errors
+  // Temporarily disable Clerk until properly configured
+  console.log("Using standard authentication (Clerk temporarily disabled)");
+  return <>{children}</>;
+  
+  // Commenting out Clerk integration until properly configured
+  /* 
   try {
     return (
       <ClerkProvider 
@@ -97,6 +102,7 @@ function ClerkKeyProvider({ children }: { children: React.ReactNode }) {
     console.error("Error initializing ClerkProvider:", err);
     return <>{children}</>;
   }
+  */
 }
 
 // Loading component for authentication
