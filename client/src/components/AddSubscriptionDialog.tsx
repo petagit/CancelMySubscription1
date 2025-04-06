@@ -60,6 +60,111 @@ const popularServices = [
     category: "Entertainment", 
     billingCycle: "monthly",
     cancelUrl: "https://www.youtube.com/paid_memberships"
+  },
+  { 
+    name: "HBO Max", 
+    amount: "15.99", 
+    category: "Entertainment", 
+    billingCycle: "monthly",
+    cancelUrl: "https://help.hbomax.com/us/Answer/Detail/000001191"
+  },
+  { 
+    name: "Hulu", 
+    amount: "7.99", 
+    category: "Entertainment", 
+    billingCycle: "monthly",
+    cancelUrl: "https://help.hulu.com/s/article/how-to-cancel"
+  },
+  { 
+    name: "Apple TV+", 
+    amount: "6.99", 
+    category: "Entertainment", 
+    billingCycle: "monthly",
+    cancelUrl: "https://support.apple.com/en-us/HT202039"
+  },
+  { 
+    name: "Apple Music", 
+    amount: "10.99", 
+    category: "Entertainment", 
+    billingCycle: "monthly",
+    cancelUrl: "https://support.apple.com/en-us/HT202039"
+  },
+  { 
+    name: "Paramount+", 
+    amount: "5.99", 
+    category: "Entertainment", 
+    billingCycle: "monthly",
+    cancelUrl: "https://help.paramountplus.com/s/article/PD-How-do-I-cancel-my-Paramount-subscription"
+  },
+  { 
+    name: "Peacock", 
+    amount: "5.99", 
+    category: "Entertainment", 
+    billingCycle: "monthly",
+    cancelUrl: "https://www.peacocktv.com/help/account/cancel-plan"
+  },
+  { 
+    name: "Microsoft 365", 
+    amount: "6.99", 
+    category: "Productivity", 
+    billingCycle: "monthly",
+    cancelUrl: "https://support.microsoft.com/en-us/account-billing/cancel-your-microsoft-subscription-c2c6b0e3-cab3-cb98-d83e-c9ad54620530"
+  },
+  { 
+    name: "Adobe Creative Cloud", 
+    amount: "54.99", 
+    category: "Productivity", 
+    billingCycle: "monthly",
+    cancelUrl: "https://helpx.adobe.com/manage-account/using/cancel-subscription.html"
+  },
+  { 
+    name: "Dropbox", 
+    amount: "11.99", 
+    category: "Productivity", 
+    billingCycle: "monthly",
+    cancelUrl: "https://help.dropbox.com/accounts-billing/billing/cancel-subscription"
+  },
+  { 
+    name: "Nintendo Switch Online", 
+    amount: "3.99", 
+    category: "Gaming", 
+    billingCycle: "monthly",
+    cancelUrl: "https://en-americas-support.nintendo.com/app/answers/detail/a_id/41196/~/how-to-cancel-a-nintendo-switch-online-membership"
+  },
+  { 
+    name: "PlayStation Plus", 
+    amount: "9.99", 
+    category: "Gaming", 
+    billingCycle: "monthly",
+    cancelUrl: "https://www.playstation.com/en-us/support/subscriptions/cancel-playstation-plus/"
+  },
+  { 
+    name: "Xbox Game Pass", 
+    amount: "10.99", 
+    category: "Gaming", 
+    billingCycle: "monthly",
+    cancelUrl: "https://support.xbox.com/en-US/help/subscriptions-billing/manage-subscriptions/xbox-game-pass-trial-cancellation"
+  },
+  { 
+    name: "EA Play", 
+    amount: "4.99", 
+    category: "Gaming", 
+    billingCycle: "monthly",
+    cancelUrl: "https://help.ea.com/en/help/subscriptions/cancel-ea-subscription/"
+  },
+  { 
+    name: "Strava", 
+    amount: "7.99", 
+    category: "Health & Fitness", 
+    billingCycle: "monthly",
+    cancelUrl: "https://support.strava.com/hc/en-us/articles/216917727-Canceling-your-Strava-Subscription"
+  },
+  { 
+    name: "Audible", 
+    amount: "14.95", 
+    category: "Entertainment", 
+    billingCycle: "monthly",
+    cancelUrl: "https://help.audible.com/s/article/how-do-i-cancel-my-membership"
   }
 ];
 
@@ -101,19 +206,21 @@ export default function AddSubscriptionDialog({ open, onOpenChange, onSubmit }: 
         
         <div className="mb-6">
           <h3 className="text-sm font-medium mb-2">Quick Add Popular Services:</h3>
-          <div className="flex flex-wrap gap-2">
-            {popularServices.map((service) => (
-              <Button
-                key={service.name}
-                type="button"
-                variant="outline"
-                size="sm"
-                className="border-black bg-white text-black hover:bg-gray-100"
-                onClick={() => addPopularService(service)}
-              >
-                {service.name}
-              </Button>
-            ))}
+          <div className="max-h-36 overflow-y-auto pr-2 mb-2">
+            <div className="flex flex-wrap gap-2">
+              {popularServices.map((service) => (
+                <Button
+                  key={service.name}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="border-black bg-white text-black hover:bg-gray-100 text-xs"
+                  onClick={() => addPopularService(service)}
+                >
+                  {service.name}
+                </Button>
+              ))}
+            </div>
           </div>
         </div>
         
