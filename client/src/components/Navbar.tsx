@@ -28,19 +28,19 @@ export default function Navbar() {
           </div>
           
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
-            <div className="flex space-x-4">
+            <div className="flex space-x-8 items-center">
               <Link href="/">
-                <span className={`text-white px-3 py-2 text-sm font-medium cursor-pointer ${location === '/' ? 'underline' : ''}`}>
-                  home
+                <span className={`text-white px-3 py-2 text-base font-medium uppercase tracking-wide cursor-pointer ${location === '/' ? 'underline' : ''}`}>
+                  HOME
                 </span>
               </Link>
               <Link href="/dashboard">
-                <span className={`text-white px-3 py-2 text-sm font-medium cursor-pointer ${location === '/dashboard' ? 'underline' : ''}`}>
-                  app
+                <span className={`text-white px-3 py-2 text-base font-medium uppercase tracking-wide cursor-pointer ${location === '/dashboard' ? 'underline' : ''}`}>
+                  APP
                 </span>
               </Link>
-              <span className="text-white px-3 py-2 text-sm font-medium cursor-pointer">
-                chrome extension
+              <span className="text-white px-3 py-2 text-base font-medium uppercase tracking-wide cursor-pointer">
+                CHROME EXTENSION
               </span>
             </div>
           </div>
@@ -78,7 +78,7 @@ export default function Navbar() {
               </DropdownMenu>
             ) : (
               <Link href="/auth">
-                <Button className="bg-white text-black hover:bg-gray-200" variant="default">Login</Button>
+                <Button className="bg-white text-black hover:bg-gray-200 font-medium text-base" variant="default">LOGIN</Button>
               </Link>
             )}
           </div>

@@ -217,21 +217,21 @@ export default function Dashboard() {
             <Button 
               onClick={handleExportCSV}
               variant="outline" 
-              className="border-black text-black hover:bg-gray-100"
+              className="border-white text-white hover:bg-gray-800 bg-black"
               title="Export to CSV"
             >
               <Download className="h-4 w-4 mr-2" />
-              Export CSV
+              EXPORT CSV
             </Button>
             
             <Button 
               onClick={handleImportClick}
               variant="outline"
-              className="border-black text-black hover:bg-gray-100"
+              className="border-white text-white hover:bg-gray-800 bg-black"
               title="Import from CSV"
             >
               <Upload className="h-4 w-4 mr-2" />
-              Import CSV
+              IMPORT CSV
             </Button>
             {/* Hidden file input */}
             <input

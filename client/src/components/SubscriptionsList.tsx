@@ -62,9 +62,9 @@ export default function SubscriptionsList({
         <Button 
           onClick={handleExportToExcel}
           variant="outline"
-          className="text-white border-white"
+          className="border-white text-white hover:bg-gray-800 bg-black"
         >
-          Export to Excel
+          EXPORT TO EXCEL
         </Button>
       </div>
     </div>
