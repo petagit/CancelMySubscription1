@@ -2,25 +2,25 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <!-- Main pages -->
   <url>
-    <loc>https://cancelmysubs.com/</loc>
+    <loc>https://cancelmysub.app/</loc>
     <lastmod>2025-04-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://cancelmysubs.com/dashboard</loc>
+    <loc>https://cancelmysub.app/dashboard</loc>
     <lastmod>2025-04-06</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://cancelmysubs.com/auth</loc>
+    <loc>https://cancelmysub.app/auth</loc>
     <lastmod>2025-04-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://cancelmysubs.com/blog</loc>
+    <loc>https://cancelmysub.app/blog</loc>
     <lastmod>2025-04-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -29,19 +29,19 @@
   <!-- Blog posts would be dynamically generated in a complete implementation -->
   <!-- Example of manually added blog posts (these would typically be dynamic) -->
   <url>
-    <loc>https://cancelmysubs.com/blog/how-to-save-money-on-subscriptions</loc>
+    <loc>https://cancelmysub.app/blog/how-to-save-money-on-subscriptions</loc>
     <lastmod>2025-04-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cancelmysubs.com/blog/top-10-subscriptions-to-cancel</loc>
+    <loc>https://cancelmysub.app/blog/top-10-subscriptions-to-cancel</loc>
     <lastmod>2025-04-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://cancelmysubs.com/blog/subscription-management-tips</loc>
+    <loc>https://cancelmysub.app/blog/subscription-management-tips</loc>
     <lastmod>2025-04-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>

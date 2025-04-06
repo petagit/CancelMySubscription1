@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 
 # Sitemap location
-Sitemap: https://cancelmysubs.com/sitemap.xml
+Sitemap: https://cancelmysub.app/sitemap.xml

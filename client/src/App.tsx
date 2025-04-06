@@ -13,6 +13,63 @@ import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { Loader2 } from "lucide-react";
 import DebugEnvironment from "./debug-env";
+import { ClerkProvider } from "@clerk/clerk-react";
+import { useEffect, useState } from "react";
+
+// Component to fetch and provide Clerk key
+function ClerkKeyProvider({ children }: { children: React.ReactNode }) {
+  const [clerkKey, setClerkKey] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    // First try to get from environment variables
+    const envKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 
+                  import.meta.env.VITE_CLERK_DEV_PUBLISHABLE_KEY;
+    
+    if (envKey) {
+      setClerkKey(envKey);
+      setLoading(false);
+      return;
+    }
+    
+    // If not available in env, fetch from server
+    fetch('/api/clerk-key')
+      .then(res => res.json())
+      .then(data => {
+        if (data.key) {
+          setClerkKey(data.key);
+        } else {
+          console.warn("No Clerk publishable key found");
+        }
+      })
+      .catch(err => {
+        console.error("Failed to fetch Clerk key:", err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
+  
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-12 w-12 animate-spin text-black" />
+        <span className="ml-3 text-lg font-medium">Loading application...</span>
+      </div>
+    );
+  }
+  
+  if (!clerkKey) {
+    // Render without Clerk if key is not available
+    return <>{children}</>;
+  }
+  
+  return (
+    <ClerkProvider publishableKey={clerkKey}>
+      {children}
+    </ClerkProvider>
+  );
+}
 
 // Loading component for authentication
 function AuthLoadingFallback() {
@@ -43,10 +100,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <DebugEnvironment />
-      <AuthProvider>
-        <Router />
-        <Toaster />
-      </AuthProvider>
+      <ClerkKeyProvider>
+        <AuthProvider>
+          <Router />
+          <Toaster />
+        </AuthProvider>
+      </ClerkKeyProvider>
     </QueryClientProvider>
   );
 }
