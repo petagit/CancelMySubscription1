@@ -1,7 +1,6 @@
 import { Link, useLocation } from "wouter";
 import LogoIcon from "./LogoIcon";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/use-auth";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,17 +9,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Loader2, User, LogOut, Info } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useUser, useClerk } from "@clerk/clerk-react";
 
 export default function Navbar() {
   const [location] = useLocation();
-  const { user, logoutMutation, isLoading } = useAuth();
+  const { isLoaded, isSignedIn, user } = useUser();
+  const { signOut } = useClerk();
   const [isGuestUser, setIsGuestUser] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   
   // Check if user is in guest mode
   useEffect(() => {
     const guestId = localStorage.getItem("guestId");
-    setIsGuestUser(!user && !!guestId);
-  }, [user]);
+    setIsGuestUser(!isSignedIn && !!guestId);
+  }, [isSignedIn]);
   
   return (
     <nav className="w-full bg-black text-white border-b border-gray-700">
@@ -67,28 +69,40 @@ export default function Navbar() {
               </div>
             )}
             
-            {isLoading ? (
+            {!isLoaded ? (
               <Loader2 className="h-5 w-5 text-white animate-spin" />
-            ) : user ? (
+            ) : isSignedIn && user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full text-white hover:bg-gray-800">
-                    <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-white">
-                      <span className="text-xs font-bold">{user.username.charAt(0).toUpperCase()}</span>
-                    </div>
+                    {user.imageUrl ? (
+                      <img 
+                        src={user.imageUrl} 
+                        alt={user.fullName || "User"} 
+                        className="h-8 w-8 rounded-full" 
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-white">
+                        <span className="text-xs font-bold">{(user.firstName?.[0] || user.emailAddresses?.[0]?.emailAddress?.[0] || "U").toUpperCase()}</span>
+                      </div>
+                    )}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem className="cursor-pointer">
                     <User className="mr-2 h-4 w-4" />
-                    <span>{user.username}</span>
+                    <span>{user.fullName || user.emailAddresses?.[0]?.emailAddress || "User"}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     className="cursor-pointer text-red-500 focus:text-red-500" 
-                    onClick={() => logoutMutation.mutate()}
-                    disabled={logoutMutation.isPending}
+                    onClick={async () => {
+                      setIsSigningOut(true);
+                      await signOut();
+                      setIsSigningOut(false);
+                    }}
+                    disabled={isSigningOut}
                   >
-                    {logoutMutation.isPending ? (
+                    {isSigningOut ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
                       <LogOut className="mr-2 h-4 w-4" />
