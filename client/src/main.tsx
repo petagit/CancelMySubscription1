@@ -4,10 +4,10 @@ import { ClerkErrorBoundary } from "./components/ClerkErrorBoundary";
 import App from "./App";
 import "./index.css";
 
-// Get the publishable key (using production key)
-const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+// Get the publishable key (using dev key)
+const clerkPubKey = import.meta.env.VITE_CLERK_DEV_PUBLISHABLE_KEY;
 if (!clerkPubKey) {
-  console.error("Missing VITE_CLERK_PUBLISHABLE_KEY in environment variables");
+  console.error("Missing VITE_CLERK_DEV_PUBLISHABLE_KEY in environment variables");
   // Continue anyway - our error handling will catch this and use guest mode
 }
 
