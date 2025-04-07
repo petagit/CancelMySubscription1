@@ -121,22 +121,27 @@ function EnhancedProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function Router() {
+  // Using App Router pattern with nested routes and centralized layout
   return (
-    <Layout>
-      <Routes>
+    <Routes>
+      <Route element={<Layout />}>
+        {/* Public routes */}
         <Route path="/" element={<Home />} />
-        
-        {/* Protected routes */}
-        <Route element={<ProtectedRoute />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-        </Route>
-        
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slug" element={<BlogPost />} />
+        
+        {/* Protected routes use ProtectedRoute as wrapper */}
+        <Route path="/dashboard/*" element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        } />
+        
+        {/* 404 route */}
         <Route path="*" element={<NotFound />} />
-      </Routes>
-    </Layout>
+      </Route>
+    </Routes>
   );
 }
 

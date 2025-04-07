@@ -1,9 +1,14 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate } from "react-router-dom";
+import { ReactNode } from "react";
+
+interface ProtectedRouteProps {
+  children: ReactNode;
+}
 
 // We allow all users access - both authenticated and guest users
-export function ProtectedRoute() {
+export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { isLoading } = useAuth();
   const hasGuestId = !!localStorage.getItem("guestId");
 
@@ -17,7 +22,7 @@ export function ProtectedRoute() {
 
   // Guest users or authenticated users can access protected routes
   if (hasGuestId) {
-    return <Outlet />;
+    return <>{children}</>;
   }
 
   // Redirect to auth page if not a guest and not authenticated

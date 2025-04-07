@@ -23,12 +23,11 @@ if (!clerkPubKey) {
 }
 
 // Render the app with Clerk provider, error boundary, and BrowserRouter
+// Note: ClerkProvider needs to be inside BrowserRouter for proper integration
 createRoot(document.getElementById("root")!).render(
   <ClerkErrorBoundary>
     <BrowserRouter>
-      <ClerkProvider 
-        publishableKey={clerkPubKey || "missing_key"}
-      >
+      <ClerkProvider publishableKey={clerkPubKey || "missing_key"}>
         <App />
       </ClerkProvider>
     </BrowserRouter>
