@@ -30,7 +30,15 @@ const clerkConfig = {
   
   // Define where to redirect after auth actions
   // When no specific redirection rules apply, go to dashboard
-  fallbackRedirectUrl: "/dashboard"
+  // Using fallbackRedirectUrl instead of redirectUrl as per Clerk warning
+  fallbackRedirectUrl: "/dashboard",
+  
+  // Add allowed domains to prevent authorization_invalid errors
+  allowedRedirectOrigins: [
+    window.location.origin,
+    "https://clerk.cancelmysub.app",
+    "http://localhost:5000"
+  ]
 };
 
 // Render the app with Clerk provider, error boundary, and BrowserRouter

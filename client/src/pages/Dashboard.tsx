@@ -69,9 +69,13 @@ export default function Dashboard() {
   const addSubscriptionMutation = useMutation({
     mutationFn: async (newSubscription: Omit<InsertSubscription, "id" | "isActive">) => {
       // Add guestId for unauthenticated users
+      // Need to ensure proper types for database compatibility
       const subscriptionData = {
         ...newSubscription,
-        guestId: isAuthenticated ? null : guestId // Only use guestId for unauthenticated users
+        // For authenticated users, convert clerkId to numeric userId (or 0) for database compatibility
+        // For guest users, use guestId
+        userId: isAuthenticated && clerkUser ? parseInt(clerkUser.id, 10) || 0 : null,
+        guestId: isAuthenticated ? null : guestId
       };
       
       const res = await apiRequest("POST", "/api/subscriptions", subscriptionData);
@@ -175,10 +179,12 @@ export default function Dashboard() {
       // Prepare subscriptions with the right identifiers
       const preparedSubscriptions = importedSubscriptions.map(sub => {
         if (isAuthenticated && clerkUser) {
-          // For authenticated users, add userId
+          // For authenticated users, use numeric userId for database compatibility
+          // Need to convert the string ID to a number, fallback to 0 if conversion fails
+          const numericUserId = parseInt(clerkUser.id, 10) || 0;
           return {
             ...sub,
-            userId: clerkUser.id,
+            userId: numericUserId,
             guestId: null
           };
         } else {
