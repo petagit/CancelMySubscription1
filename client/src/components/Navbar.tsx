@@ -23,7 +23,7 @@ export default function Navbar() {
   const { isLoaded, isSignedIn, user } = useUser();
   const { signOut } = useClerk();
   
-  // Handle test button click - create guest session and go to dashboard
+  // Handle test button click - go directly to the test dashboard route (no auth)
   const handleTestClick = () => {
     try {
       // Generate a random guest ID
@@ -34,12 +34,12 @@ export default function Navbar() {
       
       toast({
         title: "Test Mode Activated",
-        description: "You're now using the app as a test guest. No login required.",
+        description: "You're now accessing the dashboard without login.",
       });
       
-      console.log("Navigating to dashboard...");
-      // Force a reload to the dashboard URL instead of using the navigate function
-      window.location.href = "/dashboard";
+      console.log("Navigating to test dashboard...");
+      // Navigate to the special test dashboard route that bypasses Clerk auth
+      window.location.href = "/test-dashboard";
     } catch (e) {
       console.error("Error entering test mode:", e);
     }

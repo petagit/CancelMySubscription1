@@ -128,6 +128,8 @@ function Router() {
             <Dashboard />
           </EnhancedProtectedRoute>
         } />
+        {/* Test route that bypasses auth completely */}
+        <Route path="/test-dashboard" element={<Dashboard />} />
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slug" element={<BlogPost />} />
