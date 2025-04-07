@@ -20,6 +20,7 @@ import {
   useAuth as useClerkAuth
 } from "@clerk/clerk-react";
 import { AuthProvider } from "@/hooks/use-auth";
+import { ProtectedRoute } from "./lib/protected-route";
 
 // Enhanced protected route that checks for both Clerk auth and guest mode
 function EnhancedProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -124,11 +125,12 @@ function Router() {
     <Layout>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/dashboard" element={
-          <EnhancedProtectedRoute>
-            <Dashboard />
-          </EnhancedProtectedRoute>
-        } />
+        
+        {/* Protected routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+        </Route>
+        
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slug" element={<BlogPost />} />

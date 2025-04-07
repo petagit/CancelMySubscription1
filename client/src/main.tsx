@@ -26,7 +26,9 @@ if (!clerkPubKey) {
 createRoot(document.getElementById("root")!).render(
   <ClerkErrorBoundary>
     <BrowserRouter>
-      <ClerkProvider publishableKey={clerkPubKey || "missing_key"}>
+      <ClerkProvider 
+        publishableKey={clerkPubKey || "missing_key"}
+      >
         <App />
       </ClerkProvider>
     </BrowserRouter>
