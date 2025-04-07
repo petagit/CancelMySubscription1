@@ -1,57 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
 import LogoIcon from "@/components/LogoIcon";
-import { SignIn, SignUp, useUser } from "@clerk/clerk-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
 export default function AuthPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const [authView, setAuthView] = useState<"signIn" | "signUp">("signIn");
-  const [authState, setAuthState] = useState({
-    isLoaded: false,
-    isSignedIn: false,
-    isClerkAvailable: true
-  });
 
-  // Safely access Clerk with try/catch
+  // Check if user is already in guest mode
   useEffect(() => {
-    let isClerkAvailable = true;
-    let clerkUser = null;
-    let isClerkLoaded = false;
-    
-    try {
-      const clerk = useUser();
-      isClerkLoaded = clerk.isLoaded;
-      clerkUser = clerk.isSignedIn ? clerk.user : null;
-    } catch (error) {
-      console.error("Error accessing Clerk in auth page:", error);
-      isClerkAvailable = false;
-      isClerkLoaded = true;
-      
-      toast({
-        title: "Authentication Service Unavailable",
-        description: "You can continue using the app in guest mode.",
-        variant: "destructive",
-      });
-    }
-    
-    setAuthState({
-      isLoaded: isClerkLoaded,
-      isSignedIn: !!clerkUser,
-      isClerkAvailable
-    });
-  }, [toast]);
-  
-  // If user is already signed in, redirect to dashboard
-  useEffect(() => {
-    if (authState.isLoaded && authState.isSignedIn) {
+    const guestId = localStorage.getItem("guestId");
+    if (guestId) {
       navigate("/dashboard");
     }
-  }, [authState.isLoaded, authState.isSignedIn, navigate]);
+  }, [navigate]);
 
   // Continue as guest handler
   const handleContinueAsGuest = () => {
@@ -59,19 +23,14 @@ export default function AuthPage() {
     if (!localStorage.getItem("guestId")) {
       const guestId = `guest_${Math.random().toString(36).substring(2, 15)}`;
       localStorage.setItem("guestId", guestId);
+      
+      toast({
+        title: "Guest Mode Activated",
+        description: "You're now using the app as a guest. Your data will be stored locally.",
+      });
     }
     navigate("/dashboard");
   };
-  
-  // Show loading state
-  if (!authState.isLoaded) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-12 w-12 animate-spin text-black" />
-        <span className="ml-3 text-lg font-medium">Loading authentication...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="flex min-h-screen">
@@ -84,80 +43,17 @@ export default function AuthPage() {
             </div>
             <CardTitle className="text-2xl font-bold">Welcome to CancelMySub</CardTitle>
             <CardDescription>
-              Sign in, create an account, or continue as a guest
+              Track and manage your subscriptions with ease
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {authState.isClerkAvailable ? (
-              // Clerk authentication UI
-              authView === "signIn" ? (
-                <div className="mb-4">
-                  <SignIn 
-                    routing="path" 
-                    path="/auth" 
-                    redirectUrl="/dashboard"
-                    appearance={{
-                      elements: {
-                        formButtonPrimary: "bg-black hover:bg-gray-800",
-                        card: "shadow-none"
-                      }
-                    }}
-                  />
-                  <div className="mt-4 text-center text-sm text-muted-foreground">
-                    Don't have an account?{" "}
-                    <button
-                      className="text-black font-medium hover:underline"
-                      onClick={() => setAuthView("signUp")}
-                    >
-                      Sign up
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="mb-4">
-                  <SignUp
-                    routing="path"
-                    path="/auth"
-                    redirectUrl="/dashboard"
-                    appearance={{
-                      elements: {
-                        formButtonPrimary: "bg-black hover:bg-gray-800",
-                        card: "shadow-none"
-                      }
-                    }}
-                  />
-                  <div className="mt-4 text-center text-sm text-muted-foreground">
-                    Already have an account?{" "}
-                    <button
-                      className="text-black font-medium hover:underline"
-                      onClick={() => setAuthView("signIn")}
-                    >
-                      Sign in
-                    </button>
-                  </div>
-                </div>
-              )
-            ) : (
-              // Fallback when Clerk is unavailable
-              <div className="space-y-4 py-4">
-                <p className="text-center text-muted-foreground">
-                  Authentication service is currently unavailable.
-                </p>
-                <Button 
-                  onClick={handleContinueAsGuest} 
-                  className="w-full bg-black hover:bg-gray-800 text-white"
-                >
-                  Continue as Guest
-                </Button>
-              </div>
-            )}
-            
-            {/* Guest mode option - always available */}
-            <div className="mt-6 pt-6 border-t">
-              <Button
-                onClick={handleContinueAsGuest}
-                variant="outline"
-                className="w-full"
+            <div className="space-y-4 py-4">
+              <p className="text-center text-muted-foreground">
+                Continue as a guest to use all features
+              </p>
+              <Button 
+                onClick={handleContinueAsGuest} 
+                className="w-full bg-black hover:bg-gray-800 text-white"
               >
                 Continue as Guest
               </Button>

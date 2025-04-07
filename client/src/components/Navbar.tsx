@@ -9,85 +9,35 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Loader2, User, LogOut, Info } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useUser, useClerk } from "@clerk/clerk-react";
 
 export default function Navbar() {
   const [location] = useLocation();
   const [isGuestUser, setIsGuestUser] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
-  
-  // Get auth state directly from hooks with built-in error handling
-  const { isLoaded: clerkLoaded, isSignedIn, user } = useUser();
-  const { signOut } = useClerk();
-  const [clerkError, setClerkError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Check if user is in guest mode
   useEffect(() => {
     try {
       const guestId = localStorage.getItem("guestId");
-      setIsGuestUser(!isSignedIn && !!guestId);
+      setIsGuestUser(!!guestId);
+      setIsLoading(false);
     } catch (e) {
       console.error("Error checking guest mode:", e);
+      setIsLoading(false);
     }
-  }, [isSignedIn]);
+  }, []);
 
-  // Handle sign out with error handling
+  // Handle sign out - just clear guest ID for now
   const handleSignOut = async () => {
     try {
       setIsSigningOut(true);
-      if (signOut) {
-        await signOut();
-      } else {
-        // Fallback for when Clerk is not available
-        localStorage.removeItem("guestId");
-        window.location.href = "/";
-      }
+      localStorage.removeItem("guestId");
+      window.location.href = "/";
     } catch (error) {
       console.error("Error signing out:", error);
-      setClerkError(true);
     } finally {
       setIsSigningOut(false);
-    }
-  };
-  
-  // Extract user display information safely
-  const getUserInitial = (): string => {
-    if (!user) return "U";
-    
-    try {
-      if (user.firstName && user.firstName.length > 0) {
-        return user.firstName[0].toUpperCase();
-      }
-      
-      if (user.emailAddresses && 
-          user.emailAddresses.length > 0 &&
-          user.emailAddresses[0].emailAddress) {
-        return user.emailAddresses[0].emailAddress[0].toUpperCase();
-      }
-      
-      return "U";
-    } catch (e) {
-      return "U";
-    }
-  };
-  
-  const getUserDisplayName = (): string => {
-    if (!user) return "User";
-    
-    try {
-      if (user.fullName) {
-        return user.fullName;
-      }
-      
-      if (user.emailAddresses && 
-          user.emailAddresses.length > 0 &&
-          user.emailAddresses[0].emailAddress) {
-        return user.emailAddresses[0].emailAddress;
-      }
-      
-      return "User";
-    } catch (e) {
-      return "User";
     }
   };
   
@@ -136,37 +86,21 @@ export default function Navbar() {
               </div>
             )}
             
-            {/* Auth error indicator */}
-            {clerkError && (
-              <div className="mr-4 flex items-center bg-amber-700 px-3 py-1 rounded-full">
-                <Info className="h-4 w-4 mr-2 text-amber-100" />
-                <span className="text-sm text-amber-100">Auth Maintenance</span>
-              </div>
-            )}
-            
-            {!clerkLoaded ? (
+            {isLoading ? (
               <Loader2 className="h-5 w-5 text-white animate-spin" />
-            ) : isSignedIn && user ? (
+            ) : isGuestUser ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full text-white hover:bg-gray-800">
-                    {user.imageUrl ? (
-                      <img 
-                        src={user.imageUrl} 
-                        alt={user.fullName || "User"} 
-                        className="h-8 w-8 rounded-full" 
-                      />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-white">
-                        <span className="text-xs font-bold">{getUserInitial()}</span>
-                      </div>
-                    )}
+                    <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-white">
+                      <span className="text-xs font-bold">G</span>
+                    </div>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem className="cursor-pointer">
                     <User className="mr-2 h-4 w-4" />
-                    <span>{getUserDisplayName()}</span>
+                    <span>Guest User</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     className="cursor-pointer text-red-500 focus:text-red-500" 

@@ -11,24 +11,29 @@ import BlogPost from "@/pages/BlogPost";
 import Layout from "@/components/Layout";
 import { Loader2 } from "lucide-react";
 import DebugEnvironment from "./debug-env";
-import { SignedIn, SignedOut, RedirectToSignIn, useClerk } from "@clerk/clerk-react";
-import { ClerkErrorBoundary } from "@/components/ClerkErrorBoundary";
+import React, { useEffect } from "react";
+import { SWRConfig } from "swr";
 
-// Create a ClerkProtectedRoute component
-function ClerkProtectedRoute({ path, component: Component }: { path: string, component: React.ComponentType<any> }) {
+// Simple protected route that redirects to auth if not in guest mode
+function GuestProtectedRoute({ path, component: Component }: { path: string, component: React.ComponentType<any> }) {
   const [, navigate] = useLocation();
 
+  useEffect(() => {
+    const hasGuestId = !!localStorage.getItem("guestId");
+    if (!hasGuestId) {
+      navigate("/auth");
+    }
+  }, [navigate]);
+
+  const hasGuestId = !!localStorage.getItem("guestId");
+  if (!hasGuestId) {
+    return <div className="min-h-screen flex items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-gray-700" />
+    </div>;
+  }
+  
   return (
-    <Route path={path}>
-      <>
-        <SignedIn>
-          <Component />
-        </SignedIn>
-        <SignedOut>
-          <RedirectToSignIn redirectUrl={`${window.location.origin}${path}`} />
-        </SignedOut>
-      </>
-    </Route>
+    <Route path={path} component={Component} />
   );
 }
 
@@ -37,7 +42,7 @@ function Router() {
     <Layout>
       <Switch>
         <Route path="/" component={Home} />
-        <ClerkProtectedRoute path="/dashboard" component={Dashboard} />
+        <GuestProtectedRoute path="/dashboard" component={Dashboard} />
         <Route path="/auth" component={AuthPage} />
         <Route path="/blog" component={Blog} />
         <Route path="/blog/:slug" component={BlogPost} />
@@ -48,15 +53,14 @@ function Router() {
 }
 
 function App() {
-  // The ClerkProvider is now in main.tsx
   return (
-    <QueryClientProvider client={queryClient}>
-      <DebugEnvironment />
-      <ClerkErrorBoundary>
+    <SWRConfig value={{ provider: () => new Map() }}>
+      <QueryClientProvider client={queryClient}>
+        <DebugEnvironment />
         <Router />
         <Toaster />
-      </ClerkErrorBoundary>
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </SWRConfig>
   );
 }
 
