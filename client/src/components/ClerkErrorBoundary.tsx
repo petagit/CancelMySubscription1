@@ -1,12 +1,14 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import React, { Component, ErrorInfo, ReactNode, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
+  onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
 interface ErrorBoundaryState {
   hasError: boolean;
+  error: Error | null;
 }
 
 /**
@@ -17,22 +19,33 @@ interface ErrorBoundaryState {
 class ClerkErrorBoundaryClass extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { 
+      hasError: false,
+      error: null
+    };
   }
 
-  static getDerivedStateFromError(_: Error): ErrorBoundaryState {
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     // Update state so the next render will show the fallback UI
-    return { hasError: true };
+    return { 
+      hasError: true,
+      error
+    };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     // Log the error to console
     console.error('Clerk Error Boundary caught an error:', error, errorInfo);
+    
+    // Call the error handler if provided
+    if (this.props.onError) {
+      this.props.onError(error, errorInfo);
+    }
   }
 
   render(): ReactNode {
     if (this.state.hasError) {
-      // Custom fallback UI
+      // Still render children but with error state
       return (
         <>
           {this.props.children}
@@ -49,18 +62,33 @@ class ClerkErrorBoundaryClass extends Component<ErrorBoundaryProps, ErrorBoundar
  */
 export function ClerkErrorBoundary({ children }: ErrorBoundaryProps): JSX.Element {
   const { toast } = useToast();
+  const hasShownToast = useRef(false);
   
-  const handleError = () => {
-    toast({
-      title: "Authentication Issue",
-      description: "There was a problem with Google Sign-in. Standard login is still available.",
-      variant: "destructive",
-    });
+  const handleError = (error: Error) => {
+    if (!hasShownToast.current) {
+      console.log('Showing toast for Clerk error:', error.message);
+      toast({
+        title: "Authentication Notice",
+        description: "We're having trouble with our login service. You can continue using the app as a guest or try again later.",
+        variant: "destructive",
+        duration: 5000,
+      });
+      hasShownToast.current = true;
+    }
   };
+  
+  // Reset toast flag when component remounts
+  useEffect(() => {
+    return () => {
+      hasShownToast.current = false;
+    };
+  }, []);
   
   return (
     <ClerkErrorBoundaryClass
-      children={children}
-    />
+      onError={(error) => handleError(error)}
+    >
+      {children}
+    </ClerkErrorBoundaryClass>
   );
 }

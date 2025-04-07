@@ -1,29 +1,76 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import LogoIcon from "@/components/LogoIcon";
 import { SignIn, SignUp, useUser } from "@clerk/clerk-react";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AuthPage() {
   const [, navigate] = useLocation();
-  const { isLoaded, isSignedIn } = useUser();
+  const { toast } = useToast();
   const [authView, setAuthView] = useState<"signIn" | "signUp">("signIn");
+  const [authState, setAuthState] = useState({
+    isLoaded: false,
+    isSignedIn: false,
+    isClerkAvailable: true
+  });
+
+  // Safely access Clerk with try/catch
+  useEffect(() => {
+    let isClerkAvailable = true;
+    let clerkUser = null;
+    let isClerkLoaded = false;
+    
+    try {
+      const clerk = useUser();
+      isClerkLoaded = clerk.isLoaded;
+      clerkUser = clerk.isSignedIn ? clerk.user : null;
+    } catch (error) {
+      console.error("Error accessing Clerk in auth page:", error);
+      isClerkAvailable = false;
+      isClerkLoaded = true;
+      
+      toast({
+        title: "Authentication Service Unavailable",
+        description: "You can continue using the app in guest mode.",
+        variant: "destructive",
+      });
+    }
+    
+    setAuthState({
+      isLoaded: isClerkLoaded,
+      isSignedIn: !!clerkUser,
+      isClerkAvailable
+    });
+  }, [toast]);
+  
+  // If user is already signed in, redirect to dashboard
+  useEffect(() => {
+    if (authState.isLoaded && authState.isSignedIn) {
+      navigate("/dashboard");
+    }
+  }, [authState.isLoaded, authState.isSignedIn, navigate]);
+
+  // Continue as guest handler
+  const handleContinueAsGuest = () => {
+    // Generate a random guest ID if one doesn't already exist
+    if (!localStorage.getItem("guestId")) {
+      const guestId = `guest_${Math.random().toString(36).substring(2, 15)}`;
+      localStorage.setItem("guestId", guestId);
+    }
+    navigate("/dashboard");
+  };
   
   // Show loading state
-  if (!isLoaded) {
+  if (!authState.isLoaded) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-12 w-12 animate-spin text-black" />
         <span className="ml-3 text-lg font-medium">Loading authentication...</span>
       </div>
     );
-  }
-  
-  // If user is already signed in, redirect to dashboard
-  if (isSignedIn) {
-    navigate("/dashboard");
-    return null;
   }
 
   return (
@@ -37,57 +84,87 @@ export default function AuthPage() {
             </div>
             <CardTitle className="text-2xl font-bold">Welcome to CancelMySub</CardTitle>
             <CardDescription>
-              Sign in or create an account to get started
+              Sign in, create an account, or continue as a guest
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {authView === "signIn" ? (
-              <div className="mb-4">
-                <SignIn 
-                  routing="path" 
-                  path="/auth" 
-                  redirectUrl="/dashboard"
-                  appearance={{
-                    elements: {
-                      formButtonPrimary: "bg-black hover:bg-gray-800",
-                      card: "shadow-none"
-                    }
-                  }}
-                />
-                <div className="mt-4 text-center text-sm text-muted-foreground">
-                  Don't have an account?{" "}
-                  <button
-                    className="text-black font-medium hover:underline"
-                    onClick={() => setAuthView("signUp")}
-                  >
-                    Sign up
-                  </button>
+            {authState.isClerkAvailable ? (
+              // Clerk authentication UI
+              authView === "signIn" ? (
+                <div className="mb-4">
+                  <SignIn 
+                    routing="path" 
+                    path="/auth" 
+                    redirectUrl="/dashboard"
+                    appearance={{
+                      elements: {
+                        formButtonPrimary: "bg-black hover:bg-gray-800",
+                        card: "shadow-none"
+                      }
+                    }}
+                  />
+                  <div className="mt-4 text-center text-sm text-muted-foreground">
+                    Don't have an account?{" "}
+                    <button
+                      className="text-black font-medium hover:underline"
+                      onClick={() => setAuthView("signUp")}
+                    >
+                      Sign up
+                    </button>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="mb-4">
+                  <SignUp
+                    routing="path"
+                    path="/auth"
+                    redirectUrl="/dashboard"
+                    appearance={{
+                      elements: {
+                        formButtonPrimary: "bg-black hover:bg-gray-800",
+                        card: "shadow-none"
+                      }
+                    }}
+                  />
+                  <div className="mt-4 text-center text-sm text-muted-foreground">
+                    Already have an account?{" "}
+                    <button
+                      className="text-black font-medium hover:underline"
+                      onClick={() => setAuthView("signIn")}
+                    >
+                      Sign in
+                    </button>
+                  </div>
+                </div>
+              )
             ) : (
-              <div className="mb-4">
-                <SignUp
-                  routing="path"
-                  path="/auth"
-                  redirectUrl="/dashboard"
-                  appearance={{
-                    elements: {
-                      formButtonPrimary: "bg-black hover:bg-gray-800",
-                      card: "shadow-none"
-                    }
-                  }}
-                />
-                <div className="mt-4 text-center text-sm text-muted-foreground">
-                  Already have an account?{" "}
-                  <button
-                    className="text-black font-medium hover:underline"
-                    onClick={() => setAuthView("signIn")}
-                  >
-                    Sign in
-                  </button>
-                </div>
+              // Fallback when Clerk is unavailable
+              <div className="space-y-4 py-4">
+                <p className="text-center text-muted-foreground">
+                  Authentication service is currently unavailable.
+                </p>
+                <Button 
+                  onClick={handleContinueAsGuest} 
+                  className="w-full bg-black hover:bg-gray-800 text-white"
+                >
+                  Continue as Guest
+                </Button>
               </div>
             )}
+            
+            {/* Guest mode option - always available */}
+            <div className="mt-6 pt-6 border-t">
+              <Button
+                onClick={handleContinueAsGuest}
+                variant="outline"
+                className="w-full"
+              >
+                Continue as Guest
+              </Button>
+              <p className="mt-2 text-xs text-center text-muted-foreground">
+                No account needed. Your data will be stored locally.
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>
