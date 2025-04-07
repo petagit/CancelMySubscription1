@@ -132,7 +132,7 @@ function Router() {
         <Route path="/blog/:slug" element={<BlogPost />} />
         
         {/* Protected routes use ProtectedRoute as wrapper */}
-        <Route path="/dashboard/*" element={
+        <Route path="/dashboard" element={
           <ProtectedRoute>
             <Dashboard />
           </ProtectedRoute>
