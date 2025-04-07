@@ -36,9 +36,10 @@ export default function ClerkCallback() {
     // Log URL search parameters
     const searchParams = new URLSearchParams(location.search);
     logs.push(`Search params:`);
-    for (const [key, value] of searchParams.entries()) {
+    // Use forEach instead of for...of to avoid TypeScript issues
+    searchParams.forEach((value, key) => {
       logs.push(`  ${key}: ${value}`);
-    }
+    });
     
     // Check if this is actually a Clerk callback route based on URL structure
     const isClerkCallbackRoute = 

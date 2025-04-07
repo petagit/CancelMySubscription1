@@ -53,42 +53,58 @@ export function setupClerkAuth(app: Express) {
   // Endpoint to register/link a Clerk user with our database
   app.post('/api/clerk/register', async (req: Request, res: Response) => {
     try {
-      const { username, id: clerkId } = req.body;
+      console.log('Received clerk registration request:', req.body);
       
-      if (!username || !clerkId) {
-        return res.status(400).json({ message: 'Username and ID are required' });
+      const { username, id: clerkId, email } = req.body;
+      const effectiveUsername = username || email || `user_${clerkId}`;
+      
+      if (!clerkId) {
+        return res.status(400).json({ message: 'Clerk ID is required' });
       }
       
-      // Check if user already exists by username
-      let existingUser = await storage.getUserByUsername(username);
+      console.log(`Processing registration for Clerk user: ${clerkId}, username: ${effectiveUsername}`);
       
-      // Also check by Clerk ID
-      if (!existingUser) {
-        existingUser = await storage.getUserByClerkId(clerkId);
+      // First check by Clerk ID as it's most reliable
+      let existingUser = await storage.getUserByClerkId(clerkId);
+      
+      // Then check by username if not found by Clerk ID
+      if (!existingUser && effectiveUsername) {
+        existingUser = await storage.getUserByUsername(effectiveUsername);
       }
       
       if (existingUser) {
-        // User exists, return the user
+        console.log(`User already exists with id ${existingUser.id}, returning existing user`);
+        
+        // Update the clerkId if it wasn't set before but username matches
+        if (!existingUser.clerkId) {
+          console.log(`Updating existing user ${existingUser.id} with Clerk ID ${clerkId}`);
+          existingUser = await storage.updateUser(existingUser.id, { clerkId: clerkId.toString() });
+        }
+        
+        // User exists, return the user without password
         const { password, ...userWithoutPassword } = existingUser;
         return res.status(200).json(userWithoutPassword);
       }
       
       // Create a new user with a random password (not used since Clerk handles auth)
-      const randomPassword = Math.random().toString(36).substring(2);
+      console.log(`Creating new user with username: ${effectiveUsername}, clerkId: ${clerkId}`);
+      const randomPassword = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      
       const newUser = {
-        username,
+        username: effectiveUsername,
         password: randomPassword,
         clerkId: clerkId.toString() // Store the Clerk ID for future reference
       };
       
       const user = await storage.createUser(newUser);
+      console.log(`Created new user with id ${user.id}`);
       
       // Return user without password
       const { password, ...userWithoutPassword } = user;
       return res.status(201).json(userWithoutPassword);
     } catch (error) {
       console.error('Error during Clerk user registration:', error);
-      return res.status(500).json({ message: 'Failed to register user' });
+      return res.status(500).json({ message: 'Failed to register user', error: String(error) });
     }
   });
   

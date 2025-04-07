@@ -2,8 +2,12 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
-// Use development Clerk key instead of production key
-process.env.CLERK_SECRET_KEY = process.env.CLERK_DEV_SECRET_KEY;
+// Use the appropriate Clerk key based on environment
+// NOTE: We're commenting out this override to ensure we use the correct key
+// process.env.CLERK_SECRET_KEY = process.env.CLERK_DEV_SECRET_KEY;
+
+// Log which Clerk environment we're using
+console.log("Using Clerk environment:", process.env.CLERK_SECRET_KEY?.startsWith('sk_live') ? 'PRODUCTION' : 'DEVELOPMENT');
 
 const app = express();
 app.use(express.json());
