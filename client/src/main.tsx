@@ -1,17 +1,21 @@
 import { createRoot } from "react-dom/client";
 import { ClerkProvider } from "@clerk/clerk-react";
+import { ClerkErrorBoundary } from "./components/ClerkErrorBoundary";
 import App from "./App";
 import "./index.css";
 
 // Get the publishable key (using dev key)
 const clerkPubKey = import.meta.env.VITE_CLERK_DEV_PUBLISHABLE_KEY;
 if (!clerkPubKey) {
-  throw new Error("Missing VITE_CLERK_DEV_PUBLISHABLE_KEY in environment variables");
+  console.error("Missing VITE_CLERK_DEV_PUBLISHABLE_KEY in environment variables");
+  // Continue anyway - our error handling will catch this and use guest mode
 }
 
-// Render the app with Clerk provider
+// Render the app with Clerk provider and error boundary
 createRoot(document.getElementById("root")!).render(
-  <ClerkProvider publishableKey={clerkPubKey}>
-    <App />
-  </ClerkProvider>
+  <ClerkErrorBoundary>
+    <ClerkProvider publishableKey={clerkPubKey || "missing_key"}>
+      <App />
+    </ClerkProvider>
+  </ClerkErrorBoundary>
 );
