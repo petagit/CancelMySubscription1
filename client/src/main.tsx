@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import { ClerkProvider } from "@clerk/clerk-react";
 import { ClerkErrorBoundary } from "./components/ClerkErrorBoundary";
+import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import "./index.css";
 
@@ -11,11 +12,13 @@ if (!clerkPubKey) {
   // Continue anyway - our error handling will catch this and use guest mode
 }
 
-// Render the app with Clerk provider and error boundary
+// Render the app with Clerk provider, error boundary, and BrowserRouter
 createRoot(document.getElementById("root")!).render(
   <ClerkErrorBoundary>
-    <ClerkProvider publishableKey={clerkPubKey || "missing_key"}>
-      <App />
-    </ClerkProvider>
+    <BrowserRouter>
+      <ClerkProvider publishableKey={clerkPubKey || "missing_key"}>
+        <App />
+      </ClerkProvider>
+    </BrowserRouter>
   </ClerkErrorBoundary>
 );
