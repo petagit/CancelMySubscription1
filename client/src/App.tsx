@@ -8,6 +8,7 @@ import Dashboard from "@/pages/Dashboard";
 import AuthPage from "@/pages/auth-page";
 import Blog from "@/pages/Blog";
 import BlogPost from "@/pages/BlogPost";
+import ClerkCallback from "@/pages/ClerkCallback";
 import Layout from "@/components/Layout";
 import { Loader2 } from "lucide-react";
 import DebugEnvironment from "./debug-env";
@@ -131,12 +132,18 @@ function Router() {
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slug" element={<BlogPost />} />
         
-        {/* Protected routes use ProtectedRoute as wrapper */}
+        {/* Protected routes use EnhancedProtectedRoute as wrapper */}
         <Route path="/dashboard" element={
-          <ProtectedRoute>
+          <EnhancedProtectedRoute>
             <Dashboard />
-          </ProtectedRoute>
+          </EnhancedProtectedRoute>
         } />
+        
+        {/* Special route for Clerk callback handling */}
+        <Route path="/:callbackId/callback" element={<ClerkCallback />} />
+        
+        {/* Catch other Clerk-related routes */}
+        <Route path="/:callbackPath/*" element={<ClerkCallback />} />
         
         {/* 404 route */}
         <Route path="*" element={<NotFound />} />
