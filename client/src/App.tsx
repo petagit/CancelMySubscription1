@@ -140,6 +140,7 @@ function Router() {
 function App() {
   // Create a fallback to handle Clerk initialization failures
   const [clerkFailed, setClerkFailed] = useState(false);
+  const { isLoaded } = useAuth();
   
   useEffect(() => {
     // Set up a global error listener to detect Clerk initialization failures

@@ -5,10 +5,20 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import "./index.css";
 
-// Get the publishable key (using dev key)
-const clerkPubKey = import.meta.env.VITE_CLERK_DEV_PUBLISHABLE_KEY;
+// Get the publishable key (trying production first, fallback to dev)
+const prodKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+const devKey = import.meta.env.VITE_CLERK_DEV_PUBLISHABLE_KEY;
+const clerkPubKey = prodKey || devKey;
+
+// Log the environment keys for debugging
+console.log("VITE_CLERK_PUBLISHABLE_KEY:", prodKey);
+console.log("Current environment keys loaded:", {
+  dev: devKey,
+  prod: prodKey
+});
+
 if (!clerkPubKey) {
-  console.error("Missing VITE_CLERK_DEV_PUBLISHABLE_KEY in environment variables");
+  console.error("Missing Clerk publishable key in environment variables");
   // Continue anyway - our error handling will catch this and use guest mode
 }
 
