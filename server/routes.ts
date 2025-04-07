@@ -44,7 +44,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Endpoint to get Clerk publishable key
   app.get("/api/clerk-key", (req, res) => {
-    res.json({ key: process.env.CLERK_DEV_PUBLISHABLE_KEY || "" });
+    // Use production key instead of development key
+    res.json({ key: process.env.CLERK_PUBLISHABLE_KEY || "" });
   });
   
   // API routes - prefix all with /api
