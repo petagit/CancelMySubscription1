@@ -2,6 +2,9 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
+// Use development Clerk key instead of production key
+process.env.CLERK_SECRET_KEY = process.env.CLERK_DEV_SECRET_KEY;
+
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
