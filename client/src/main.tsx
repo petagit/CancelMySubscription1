@@ -23,39 +23,28 @@ if (!clerkPubKey) {
   // Continue anyway - our error handling will catch this and use guest mode
 }
 
-// Define Clerk routing configuration
+// Define Clerk routing configuration - making it as simple as possible
 const clerkConfig = {
   // Use hash-based routing (based on the working implementation)
   routerType: "hash",
   
-  // Define specific paths for authentication
-  signInPath: "/auth",
-  signUpPath: "/auth",
-  
-  // Define where to redirect after auth actions (updated per warning)
-  // "fallbackRedirectUrl" is the URL to redirect to when no other redirect rules apply
-  // Using the proper redirect props according to Clerk docs
-  fallbackRedirectUrl: "/dashboard",
-  forceRedirectUrl: "/dashboard",
-  
-  // Customize the navigation to use our app's routing
-  navigate: (to: string) => {
-    console.log("Clerk navigating to:", to);
-    window.location.href = to;
-  }
+  // Define where to redirect after auth actions
+  // When no specific redirection rules apply, go to dashboard
+  fallbackRedirectUrl: "/dashboard"
 };
 
 // Render the app with Clerk provider, error boundary, and BrowserRouter
 // Note: ClerkProvider needs to be inside BrowserRouter for proper integration
+// This pattern matches your working app's structure
 createRoot(document.getElementById("root")!).render(
-  <ClerkErrorBoundary>
-    <BrowserRouter>
-      <ClerkProvider 
-        publishableKey={clerkPubKey || "missing_key"}
-        {...clerkConfig}
-      >
+  <BrowserRouter>
+    <ClerkProvider 
+      publishableKey={clerkPubKey || "missing_key"}
+      {...clerkConfig}
+    >
+      <ClerkErrorBoundary>
         <App />
-      </ClerkProvider>
-    </BrowserRouter>
-  </ClerkErrorBoundary>
+      </ClerkErrorBoundary>
+    </ClerkProvider>
+  </BrowserRouter>
 );

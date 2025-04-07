@@ -139,19 +139,7 @@ function Router() {
           </EnhancedProtectedRoute>
         } />
         
-        {/* More specific Clerk callback routes */}
-        <Route path="/sso-callback" element={<ClerkCallback />} />
-        <Route path="/sso-callback/*" element={<ClerkCallback />} />
-        <Route path="/callback" element={<ClerkCallback />} />
-        <Route path="/callback/*" element={<ClerkCallback />} />
-        <Route path="/:callbackId/callback" element={<ClerkCallback />} />
-        
-        {/* Handle Clerk OAuth flows */}
-        <Route path="/oauth" element={<ClerkCallback />} />
-        <Route path="/oauth/*" element={<ClerkCallback />} />
-        
-        {/* Generic catch-all route for Clerk callback handling */}
-        <Route path="/callback/*" element={<ClerkCallback />} />
+        {/* Removed complex callback routes to simplify the flow */}
         
         {/* 404 route */}
         <Route path="*" element={<NotFound />} />
