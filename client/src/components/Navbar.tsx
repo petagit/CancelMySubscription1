@@ -9,36 +9,78 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Loader2, User, LogOut, Info } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useClerk, useUser } from "@clerk/clerk-react";
 
 export default function Navbar() {
   const [location] = useLocation();
-  const [isGuestUser, setIsGuestUser] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isGuestUser, setIsGuestUser] = useState(false);
+  
+  // Use Clerk to manage authentication
+  const { isLoaded, isSignedIn, user } = useUser();
+  const { signOut } = useClerk();
   
   // Check if user is in guest mode
   useEffect(() => {
     try {
       const guestId = localStorage.getItem("guestId");
-      setIsGuestUser(!!guestId);
-      setIsLoading(false);
+      setIsGuestUser(!!guestId && !isSignedIn);
     } catch (e) {
       console.error("Error checking guest mode:", e);
-      setIsLoading(false);
     }
-  }, []);
-
-  // Handle sign out - just clear guest ID for now
+  }, [isSignedIn]);
+  
+  // Handle sign out
   const handleSignOut = async () => {
     try {
       setIsSigningOut(true);
-      localStorage.removeItem("guestId");
-      window.location.href = "/";
+      
+      if (isGuestUser) {
+        // Guest logout
+        localStorage.removeItem("guestId");
+        window.location.href = "/";
+      } else if (signOut) {
+        // Clerk logout
+        await signOut();
+        window.location.href = "/";
+      }
     } catch (error) {
       console.error("Error signing out:", error);
     } finally {
       setIsSigningOut(false);
     }
+  };
+  
+  // Get user's initials for avatar
+  const getUserInitial = (): string => {
+    if (isGuestUser) return "G";
+    if (!user) return "U";
+    
+    if (user.firstName) {
+      return user.firstName[0].toUpperCase();
+    }
+    
+    if (user.emailAddresses && user.emailAddresses.length > 0) {
+      return user.emailAddresses[0].emailAddress[0].toUpperCase();
+    }
+    
+    return "U";
+  };
+  
+  // Get display name for dropdown
+  const getUserDisplayName = (): string => {
+    if (isGuestUser) return "Guest User";
+    if (!user) return "User";
+    
+    if (user.fullName) {
+      return user.fullName;
+    }
+    
+    if (user.emailAddresses && user.emailAddresses.length > 0) {
+      return user.emailAddresses[0].emailAddress;
+    }
+    
+    return "User";
   };
   
   return (
@@ -86,8 +128,44 @@ export default function Navbar() {
               </div>
             )}
             
-            {isLoading ? (
+            {!isLoaded && !isGuestUser ? (
               <Loader2 className="h-5 w-5 text-white animate-spin" />
+            ) : isSignedIn && user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full text-white hover:bg-gray-800">
+                    {user.imageUrl ? (
+                      <img 
+                        src={user.imageUrl} 
+                        alt={user.fullName || "User"} 
+                        className="h-8 w-8 rounded-full" 
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-white">
+                        <span className="text-xs font-bold">{getUserInitial()}</span>
+                      </div>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem className="cursor-pointer">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>{getUserDisplayName()}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    className="cursor-pointer text-red-500 focus:text-red-500" 
+                    onClick={handleSignOut}
+                    disabled={isSigningOut}
+                  >
+                    {isSigningOut ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <LogOut className="mr-2 h-4 w-4" />
+                    )}
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : isGuestUser ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

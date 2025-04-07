@@ -4,18 +4,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import LogoIcon from "@/components/LogoIcon";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { SignIn, useUser } from "@clerk/clerk-react";
+import { Loader2 } from "lucide-react";
 
 export default function AuthPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const { isLoaded, isSignedIn } = useUser();
 
-  // Check if user is already in guest mode
+  // Redirect to dashboard if user is already signed in
   useEffect(() => {
-    const guestId = localStorage.getItem("guestId");
-    if (guestId) {
+    if (isLoaded && isSignedIn) {
       navigate("/dashboard");
     }
-  }, [navigate]);
+  }, [isLoaded, isSignedIn, navigate]);
 
   // Continue as guest handler
   const handleContinueAsGuest = () => {
@@ -32,6 +34,16 @@ export default function AuthPage() {
     navigate("/dashboard");
   };
 
+  // Show loading state while Clerk is initializing
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-12 w-12 animate-spin text-black" />
+        <span className="ml-3 text-lg font-medium">Loading authentication...</span>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen">
       {/* Form column */}
@@ -43,23 +55,49 @@ export default function AuthPage() {
             </div>
             <CardTitle className="text-2xl font-bold">Welcome to CancelMySub</CardTitle>
             <CardDescription>
-              Track and manage your subscriptions with ease
+              Sign in to manage your subscriptions or continue as a guest
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4 py-4">
-              <p className="text-center text-muted-foreground">
-                Continue as a guest to use all features
-              </p>
-              <Button 
-                onClick={handleContinueAsGuest} 
-                className="w-full bg-black hover:bg-gray-800 text-white"
-              >
-                Continue as Guest
-              </Button>
-              <p className="mt-2 text-xs text-center text-muted-foreground">
-                No account needed. Your data will be stored locally.
-              </p>
+            <div className="space-y-4">
+              {/* Clerk Sign In UI */}
+              <div className="mb-6">
+                <SignIn 
+                  routing="path" 
+                  path="/auth" 
+                  redirectUrl="/dashboard" 
+                  appearance={{
+                    elements: {
+                      formButtonPrimary: "bg-black hover:bg-gray-800 text-white",
+                      card: "shadow-none"
+                    }
+                  }}
+                />
+              </div>
+              
+              {/* Divider */}
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-white px-2 text-muted-foreground">Or</span>
+                </div>
+              </div>
+              
+              {/* Guest mode option */}
+              <div className="pt-4">
+                <Button 
+                  onClick={handleContinueAsGuest} 
+                  variant="outline"
+                  className="w-full"
+                >
+                  Continue as Guest
+                </Button>
+                <p className="mt-2 text-xs text-center text-muted-foreground">
+                  No account needed. Your data will be stored locally.
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
