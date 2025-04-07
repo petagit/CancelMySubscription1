@@ -25,14 +25,16 @@ if (!clerkPubKey) {
 
 // Define Clerk routing configuration
 const clerkConfig = {
-  // Use path-based routing
-  routerType: "path",
+  // Use hash-based routing (based on the working implementation)
+  routerType: "hash",
   
   // Define specific paths for authentication
   signInPath: "/auth",
   signUpPath: "/auth",
   
-  // Define where to redirect after auth actions (updated props per Clerk docs)
+  // Define where to redirect after auth actions (updated per warning)
+  // "fallbackRedirectUrl" is the URL to redirect to when no other redirect rules apply
+  // Using the proper redirect props according to Clerk docs
   fallbackRedirectUrl: "/dashboard",
   forceRedirectUrl: "/dashboard",
   

@@ -1,16 +1,18 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import LogoIcon from "@/components/LogoIcon";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { SignIn, useUser } from "@clerk/clerk-react";
+import { SignIn, SignUp, useUser } from "@clerk/clerk-react";
 import { Loader2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function AuthPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { isLoaded, isSignedIn } = useUser();
+  const [activeTab, setActiveTab] = useState<"sign-in" | "sign-up">("sign-in");
 
   // Redirect to dashboard if user is already signed in
   useEffect(() => {
@@ -44,6 +46,9 @@ export default function AuthPage() {
     );
   }
 
+  // If already authenticated, we'll redirect
+  if (isSignedIn) return null;
+
   return (
     <div className="flex min-h-screen">
       {/* Form column */}
@@ -60,22 +65,47 @@ export default function AuthPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {/* Clerk Sign In UI */}
-              <div className="mb-6">
-                <SignIn 
-                  routing="path" 
-                  path="/auth" 
-                  signUpUrl="/auth"
-                  redirectUrl="/dashboard"
-                  fallbackRedirectUrl="/dashboard"
-                  appearance={{
-                    elements: {
-                      formButtonPrimary: "bg-black hover:bg-gray-800 text-white",
-                      card: "shadow-none"
-                    }
-                  }}
-                />
-              </div>
+              {/* Clerk Authentication UI with Tabs */}
+              <Tabs 
+                value={activeTab} 
+                onValueChange={(value) => setActiveTab(value as "sign-in" | "sign-up")}
+                className="w-full mb-6"
+              >
+                <TabsList className="grid w-full grid-cols-2 mb-6">
+                  <TabsTrigger value="sign-in">Sign In</TabsTrigger>
+                  <TabsTrigger value="sign-up">Sign Up</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="sign-in">
+                  <SignIn 
+                    routing="hash"
+                    signUpUrl="#sign-up"
+                    fallbackRedirectUrl="/dashboard"
+                    forceRedirectUrl="/dashboard"
+                    appearance={{
+                      elements: {
+                        formButtonPrimary: "bg-black hover:bg-gray-800 text-white",
+                        card: "shadow-none"
+                      }
+                    }}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="sign-up">
+                  <SignUp 
+                    routing="hash"
+                    signInUrl="#sign-in"
+                    fallbackRedirectUrl="/dashboard"
+                    forceRedirectUrl="/dashboard"
+                    appearance={{
+                      elements: {
+                        formButtonPrimary: "bg-black hover:bg-gray-800 text-white",
+                        card: "shadow-none"
+                      }
+                    }}
+                  />
+                </TabsContent>
+              </Tabs>
               
               {/* Divider */}
               <div className="relative">
