@@ -16,11 +16,32 @@ console.log("Current environment keys loaded:", {
   dev: devKey,
   prod: prodKey
 });
+console.log("VITE_CLERK_DEV_PUBLISHABLE_KEY:", devKey);
 
 if (!clerkPubKey) {
   console.error("Missing Clerk publishable key in environment variables");
   // Continue anyway - our error handling will catch this and use guest mode
 }
+
+// Define Clerk routing configuration
+const clerkConfig = {
+  // Use path-based routing
+  routerType: "path",
+  
+  // Define specific paths for authentication
+  signInPath: "/auth",
+  signUpPath: "/auth",
+  
+  // Define where to redirect after auth actions (updated props per Clerk docs)
+  fallbackRedirectUrl: "/dashboard",
+  forceRedirectUrl: "/dashboard",
+  
+  // Customize the navigation to use our app's routing
+  navigate: (to: string) => {
+    console.log("Clerk navigating to:", to);
+    window.location.href = to;
+  }
+};
 
 // Render the app with Clerk provider, error boundary, and BrowserRouter
 // Note: ClerkProvider needs to be inside BrowserRouter for proper integration
@@ -29,6 +50,7 @@ createRoot(document.getElementById("root")!).render(
     <BrowserRouter>
       <ClerkProvider 
         publishableKey={clerkPubKey || "missing_key"}
+        {...clerkConfig}
       >
         <App />
       </ClerkProvider>

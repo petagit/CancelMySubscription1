@@ -65,10 +65,9 @@ export default function AuthPage() {
                 <SignIn 
                   routing="path" 
                   path="/auth" 
-                  redirectUrl="/dashboard"
                   signUpUrl="/auth"
-                  afterSignInUrl="/dashboard"
-                  afterSignUpUrl="/dashboard"
+                  redirectUrl="/dashboard"
+                  fallbackRedirectUrl="/dashboard"
                   appearance={{
                     elements: {
                       formButtonPrimary: "bg-black hover:bg-gray-800 text-white",
