@@ -28,15 +28,18 @@ export default function Navbar() {
     try {
       // Generate a random guest ID
       const guestId = `guest_${Math.random().toString(36).substring(2, 15)}`;
+      console.log("Setting guestId:", guestId);
       localStorage.setItem("guestId", guestId);
+      setIsGuestUser(true);
       
       toast({
         title: "Test Mode Activated",
         description: "You're now using the app as a test guest. No login required.",
       });
       
-      // Navigate to dashboard
-      navigate("/dashboard");
+      console.log("Navigating to dashboard...");
+      // Force a reload to the dashboard URL instead of using the navigate function
+      window.location.href = "/dashboard";
     } catch (e) {
       console.error("Error entering test mode:", e);
     }
