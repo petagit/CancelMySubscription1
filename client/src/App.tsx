@@ -8,7 +8,6 @@ import Dashboard from "@/pages/Dashboard";
 import AuthPage from "@/pages/auth-page";
 import Blog from "@/pages/Blog";
 import BlogPost from "@/pages/BlogPost";
-import ClerkCallback from "@/pages/ClerkCallback";
 import Layout from "@/components/Layout";
 import { Loader2 } from "lucide-react";
 import DebugEnvironment from "./debug-env";
@@ -20,7 +19,7 @@ import {
   ClerkLoading,
   useAuth as useClerkAuth
 } from "@clerk/clerk-react";
-import { AuthProvider } from "@/hooks/use-auth";
+// We no longer need the old AuthProvider
 import { ProtectedRoute } from "./lib/protected-route";
 
 // Enhanced protected route that checks for both Clerk auth and guest mode
@@ -188,9 +187,7 @@ function App() {
           Authentication service is currently unavailable. You're using guest mode.
         </div>
       )}
-      <AuthProvider>
-        <Router />
-      </AuthProvider>
+      <Router />
       <Toaster />
     </QueryClientProvider>
   );

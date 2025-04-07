@@ -6,14 +6,18 @@ import AddSubscriptionDialog from "@/components/AddSubscriptionDialog";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth as useClerkAuth, useUser } from "@clerk/clerk-react";
 import type { Subscription, InsertSubscription } from "@shared/schema";
 import { exportToCSV, importFromCSV } from "@/lib/excel";
 import { Download, Upload, AlertCircle } from "lucide-react";
 
 export default function Dashboard() {
   const [open, setOpen] = useState(false);
-  const { user } = useAuth();
+  const { isSignedIn } = useClerkAuth();
+  const { user: clerkUser } = useUser();
+  
+  // Determine if we're using a guest ID or clerk authentication
+  const isAuthenticated = isSignedIn && clerkUser;
   
   // Use persistent guest ID for unauthenticated users
   const [guestId, setGuestId] = useState<string>(() => {
@@ -29,7 +33,7 @@ export default function Dashboard() {
   
   // Build API query parameters
   const getQueryParams = () => {
-    if (user) return ""; // Authenticated user doesn't need guestId
+    if (isAuthenticated) return ""; // Authenticated user doesn't need guestId
     return `?guestId=${guestId}`; // Guest user needs guestId
   };
   
@@ -39,7 +43,7 @@ export default function Dashboard() {
     yearlySpending: number;
     activeSubscriptions: number;
   }>({
-    queryKey: ["/api/stats", user ? "authenticated" : guestId],
+    queryKey: ["/api/stats", isAuthenticated ? "authenticated" : guestId],
     queryFn: async () => {
       const response = await fetch(`/api/stats${getQueryParams()}`);
       if (!response.ok) throw new Error("Failed to fetch stats");
@@ -53,7 +57,7 @@ export default function Dashboard() {
     isLoading: isLoadingSubscriptions, 
     isError: isErrorSubscriptions
   } = useQuery<Subscription[]>({
-    queryKey: ["/api/subscriptions", user ? "authenticated" : guestId],
+    queryKey: ["/api/subscriptions", isAuthenticated ? "authenticated" : guestId],
     queryFn: async () => {
       const response = await fetch(`/api/subscriptions${getQueryParams()}`);
       if (!response.ok) throw new Error("Failed to fetch subscriptions");
@@ -67,15 +71,15 @@ export default function Dashboard() {
       // Add guestId for unauthenticated users
       const subscriptionData = {
         ...newSubscription,
-        guestId: user ? null : guestId // Only use guestId for unauthenticated users
+        guestId: isAuthenticated ? null : guestId // Only use guestId for unauthenticated users
       };
       
       const res = await apiRequest("POST", "/api/subscriptions", subscriptionData);
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/subscriptions", user ? "authenticated" : guestId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/stats", user ? "authenticated" : guestId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/subscriptions", isAuthenticated ? "authenticated" : guestId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats", isAuthenticated ? "authenticated" : guestId] });
       setOpen(false);
       toast({
         title: "Success",
@@ -97,8 +101,8 @@ export default function Dashboard() {
       await apiRequest("DELETE", `/api/subscriptions/${id}${getQueryParams()}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/subscriptions", user ? "authenticated" : guestId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/stats", user ? "authenticated" : guestId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/subscriptions", isAuthenticated ? "authenticated" : guestId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats", isAuthenticated ? "authenticated" : guestId] });
       toast({
         title: "Success",
         description: "Subscription deleted successfully",
@@ -170,11 +174,11 @@ export default function Dashboard() {
       
       // Prepare subscriptions with the right identifiers
       const preparedSubscriptions = importedSubscriptions.map(sub => {
-        if (user) {
+        if (isAuthenticated && clerkUser) {
           // For authenticated users, add userId
           return {
             ...sub,
-            userId: user.id,
+            userId: clerkUser.id,
             guestId: null
           };
         } else {
