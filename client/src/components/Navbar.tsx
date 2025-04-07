@@ -1,4 +1,4 @@
-import { Link, useLocation } from "wouter";
+import { Link as RouterLink, useLocation as useRouterLocation } from "react-router-dom";
 import LogoIcon from "./LogoIcon";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +12,7 @@ import { useEffect, useState } from "react";
 import { useClerk, useUser } from "@clerk/clerk-react";
 
 export default function Navbar() {
-  const [location] = useLocation();
+  const location = useRouterLocation();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isGuestUser, setIsGuestUser] = useState(false);
   
@@ -88,31 +88,31 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-24">
           <div className="flex items-center">
-            <Link href="/">
+            <RouterLink to="/">
               <span className="flex-shrink-0 flex items-center cursor-pointer">
                 <LogoIcon className="h-[90px] w-auto text-white" />
                 <span className="ml-2 text-xl font-bold text-white">CANCELMYSUBS</span>
               </span>
-            </Link>
+            </RouterLink>
           </div>
           
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
             <div className="flex space-x-8 items-center">
-              <Link href="/">
-                <span className={`text-white px-3 py-2 text-base font-medium uppercase tracking-wide cursor-pointer ${location === '/' ? 'underline' : ''}`}>
+              <RouterLink to="/">
+                <span className={`text-white px-3 py-2 text-base font-medium uppercase tracking-wide cursor-pointer ${location.pathname === '/' ? 'underline' : ''}`}>
                   HOME
                 </span>
-              </Link>
-              <Link href="/dashboard">
-                <span className={`text-white px-3 py-2 text-base font-medium uppercase tracking-wide cursor-pointer ${location === '/dashboard' ? 'underline' : ''}`}>
+              </RouterLink>
+              <RouterLink to="/dashboard">
+                <span className={`text-white px-3 py-2 text-base font-medium uppercase tracking-wide cursor-pointer ${location.pathname === '/dashboard' ? 'underline' : ''}`}>
                   APP
                 </span>
-              </Link>
-              <Link href="/blog">
-                <span className={`text-white px-3 py-2 text-base font-medium uppercase tracking-wide cursor-pointer ${location.startsWith('/blog') ? 'underline' : ''}`}>
+              </RouterLink>
+              <RouterLink to="/blog">
+                <span className={`text-white px-3 py-2 text-base font-medium uppercase tracking-wide cursor-pointer ${location.pathname.startsWith('/blog') ? 'underline' : ''}`}>
                   BLOG
                 </span>
-              </Link>
+              </RouterLink>
               <span className="text-white px-3 py-2 text-base font-medium uppercase tracking-wide cursor-pointer">
                 CHROME EXTENSION
               </span>
@@ -195,9 +195,9 @@ export default function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Link href="/auth">
+              <RouterLink to="/auth">
                 <Button className="bg-white text-black hover:bg-gray-200 font-medium text-base" variant="default">LOGIN</Button>
-              </Link>
+              </RouterLink>
             )}
           </div>
         </div>

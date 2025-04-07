@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -63,7 +63,7 @@ export default function Blog() {
                   <div className="text-black mb-4">
                     {stripHtml(post.excerpt.rendered)}
                   </div>
-                  <Link href={`/blog/${post.slug}`}>
+                  <Link to={`/blog/${post.slug}`}>
                     <Button className="bg-black text-white hover:bg-gray-800">
                       Read More
                     </Button>

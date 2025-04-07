@@ -1,19 +1,19 @@
 import { Button } from "@/components/ui/button";
 import FeatureCard from "@/components/FeatureCard";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 
 // For development purposes, we're bypassing authentication
 const isDevelopment = true;
 
 export default function Home() {
-  const [_, setLocation] = useLocation();
+  const navigate = useNavigate();
 
   // In development, we'll always consider the user as signed in
   const isSignedIn = isDevelopment ? true : false;
 
   const handleGetStarted = () => {
     // In development, always go to dashboard
-    setLocation("/dashboard");
+    navigate("/dashboard");
   };
 
   return (

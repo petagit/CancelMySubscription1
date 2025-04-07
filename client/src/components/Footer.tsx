@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link } from "react-router-dom";
 import LogoIcon from "./LogoIcon";
 
 export default function Footer() {
@@ -9,7 +9,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-1">
-            <Link href="/">
+            <Link to="/">
               <div className="flex items-center cursor-pointer">
                 <LogoIcon className="h-12 w-auto text-white" />
                 <span className="ml-2 text-lg font-bold">CANCELMYSUBS</span>
@@ -24,17 +24,17 @@ export default function Footer() {
             <h3 className="text-base font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/">
+                <Link to="/">
                   <span className="text-gray-300 hover:text-white cursor-pointer">Home</span>
                 </Link>
               </li>
               <li>
-                <Link href="/dashboard">
+                <Link to="/dashboard">
                   <span className="text-gray-300 hover:text-white cursor-pointer">Dashboard</span>
                 </Link>
               </li>
               <li>
-                <Link href="/blog">
+                <Link to="/blog">
                   <span className="text-gray-300 hover:text-white cursor-pointer">Blog</span>
                 </Link>
               </li>

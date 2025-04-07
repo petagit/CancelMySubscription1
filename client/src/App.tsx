@@ -17,8 +17,9 @@ import {
   SignedOut, 
   ClerkLoaded,
   ClerkLoading,
-  useAuth
+  useAuth as useClerkAuth
 } from "@clerk/clerk-react";
+import { AuthProvider } from "@/hooks/use-auth";
 
 // Enhanced protected route that checks for both Clerk auth and guest mode
 function EnhancedProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -26,7 +27,7 @@ function EnhancedProtectedRoute({ children }: { children: React.ReactNode }) {
   const [isGuestUser, setIsGuestUser] = useState(false);
   const [isCheckingGuest, setIsCheckingGuest] = useState(true);
   const [clerkError, setClerkError] = useState(false);
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useClerkAuth();
   
   // Check for guest mode
   useEffect(() => {
@@ -140,7 +141,7 @@ function Router() {
 function App() {
   // Create a fallback to handle Clerk initialization failures
   const [clerkFailed, setClerkFailed] = useState(false);
-  const { isLoaded } = useAuth();
+  const { isLoaded } = useClerkAuth();
   
   useEffect(() => {
     // Set up a global error listener to detect Clerk initialization failures
@@ -177,7 +178,9 @@ function App() {
           Authentication service is currently unavailable. You're using guest mode.
         </div>
       )}
-      <Router />
+      <AuthProvider>
+        <Router />
+      </AuthProvider>
       <Toaster />
     </QueryClientProvider>
   );

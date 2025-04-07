@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
-import { Route } from "wouter";
+import { Route } from "react-router-dom";
 
 // We allow all users access - both authenticated and guest users
 export function ProtectedRoute({

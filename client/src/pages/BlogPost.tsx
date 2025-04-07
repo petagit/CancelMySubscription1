@@ -1,4 +1,4 @@
-import { useParams, Link } from "wouter";
+import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ export default function BlogPost() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <Link href="/blog">
+      <Link to="/blog">
         <Button variant="ghost" className="mb-4 text-black hover:bg-gray-100">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to all posts
