@@ -7,18 +7,40 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Loader2, User, LogOut, Info } from "lucide-react";
+import { Loader2, User, LogOut, Info, TestTube } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useClerk, useUser } from "@clerk/clerk-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Navbar() {
   const [location] = useLocation();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isGuestUser, setIsGuestUser] = useState(false);
+  const [, navigate] = useLocation();
+  const { toast } = useToast();
   
   // Use Clerk to manage authentication
   const { isLoaded, isSignedIn, user } = useUser();
   const { signOut } = useClerk();
+  
+  // Handle test button click - create guest session and go to dashboard
+  const handleTestClick = () => {
+    try {
+      // Generate a random guest ID
+      const guestId = `guest_${Math.random().toString(36).substring(2, 15)}`;
+      localStorage.setItem("guestId", guestId);
+      
+      toast({
+        title: "Test Mode Activated",
+        description: "You're now using the app as a test guest. No login required.",
+      });
+      
+      // Navigate to dashboard
+      navigate("/dashboard");
+    } catch (e) {
+      console.error("Error entering test mode:", e);
+    }
+  };
   
   // Check if user is in guest mode
   useEffect(() => {
@@ -127,6 +149,16 @@ export default function Navbar() {
                 <span className="text-sm text-gray-300">Guest Mode</span>
               </div>
             )}
+            
+            {/* Test Button */}
+            <Button 
+              onClick={handleTestClick}
+              className="mr-4 bg-green-600 hover:bg-green-700 text-white"
+              variant="default"
+            >
+              <TestTube className="mr-2 h-4 w-4" />
+              TEST
+            </Button>
             
             {!isLoaded && !isGuestUser ? (
               <Loader2 className="h-5 w-5 text-white animate-spin" />
