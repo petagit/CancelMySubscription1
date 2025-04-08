@@ -142,7 +142,7 @@ export default function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <RouterLink to="/auth">
+              <RouterLink to="/sign-in">
                 <Button className="bg-white text-black hover:bg-gray-200 font-medium text-base" variant="default">LOGIN</Button>
               </RouterLink>
             )}

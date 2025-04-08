@@ -12,8 +12,13 @@ export default function Home() {
   const isSignedIn = isDevelopment ? true : false;
 
   const handleGetStarted = () => {
-    // In development, always go to dashboard
-    navigate("/dashboard");
+    if (isSignedIn) {
+      // If signed in, go to dashboard
+      navigate("/dashboard");
+    } else {
+      // If not signed in, go to sign-in page
+      navigate("/sign-in");
+    }
   };
 
   return (

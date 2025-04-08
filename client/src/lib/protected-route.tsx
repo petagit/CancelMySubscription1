@@ -28,6 +28,6 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <>{children}</>;
   }
   
-  // Otherwise, redirect to home page
-  return <Navigate to="/" replace />;
+  // Otherwise, redirect to sign-in page
+  return <Navigate to="/sign-in" replace />;
 }
