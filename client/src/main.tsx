@@ -23,13 +23,17 @@ if (!clerkPubKey) {
   // Continue anyway - our error handling will catch this and use guest mode
 }
 
-// Define Clerk routing configuration - making it as simple as possible
+// Define Clerk routing configuration using Clerk's best practices
 const clerkConfig = {
   // Use hash-based routing (based on the working implementation)
   routerType: "hash",
   
-  // Define where to redirect after auth actions
-  // Use a complete path with hash notation for the dashboard
+  // Define redirect routes
+  signInUrl: "/#/auth",
+  signUpUrl: "/#/auth",
+  
+  // Using the recommended properties instead of deprecated ones
+  // This is the URL users will be redirected to after sign in/up if no other redirect is specified
   fallbackRedirectUrl: "/#/dashboard",
   
   // Add allowed domains to prevent authorization_invalid errors
