@@ -44,7 +44,10 @@ const clerkConfig = {
     window.location.origin,
     "https://clerk.cancelmysub.app",
     "http://localhost:5000"
-  ]
+  ],
+  
+  // Make sure we're not using any deprecated properties
+  // redirectUrl is deprecated, we're using forceRedirectUrl and fallbackRedirectUrl instead
 };
 
 // Render the app with Clerk provider, error boundary, and BrowserRouter
