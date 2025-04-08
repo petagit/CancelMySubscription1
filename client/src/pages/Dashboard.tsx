@@ -82,6 +82,13 @@ export default function Dashboard() {
     return `?guestId=${encodeURIComponent(guestId)}`;
   };
   
+  // Debug logging for dev mode
+  useEffect(() => {
+    if (isDevMode) {
+      console.log("Dashboard running in dev mode with guest ID:", guestId);
+    }
+  }, [isDevMode, guestId]);
+
   // Get stats
   const { data: stats, isLoading: isLoadingStats } = useQuery<{
     monthlySpending: number;
@@ -90,10 +97,19 @@ export default function Dashboard() {
   }>({
     queryKey: ["/api/stats", isAuthenticated ? "authenticated" : guestId],
     queryFn: async () => {
-      const response = await fetch(`/api/stats${getQueryParams()}`);
-      if (!response.ok) throw new Error("Failed to fetch stats");
+      // Construct query params
+      const params = getQueryParams();
+      console.log(`Fetching stats with params: ${params}`);
+      
+      const response = await fetch(`/api/stats${params}`);
+      if (!response.ok) {
+        console.error("Failed to fetch stats:", await response.text());
+        throw new Error("Failed to fetch stats");
+      }
       return response.json();
-    }
+    },
+    // Disable query if no proper authentication method
+    enabled: !!(isAuthenticated || guestId || isDevMode)
   });
   
   // Get subscriptions
@@ -104,10 +120,19 @@ export default function Dashboard() {
   } = useQuery<Subscription[]>({
     queryKey: ["/api/subscriptions", isAuthenticated ? "authenticated" : guestId],
     queryFn: async () => {
-      const response = await fetch(`/api/subscriptions${getQueryParams()}`);
-      if (!response.ok) throw new Error("Failed to fetch subscriptions");
+      // Construct query params
+      const params = getQueryParams();
+      console.log(`Fetching subscriptions with params: ${params}`);
+      
+      const response = await fetch(`/api/subscriptions${params}`);
+      if (!response.ok) {
+        console.error("Failed to fetch subscriptions:", await response.text());
+        throw new Error("Failed to fetch subscriptions");
+      }
       return response.json();
-    }
+    },
+    // Disable query if no proper authentication method
+    enabled: !!(isAuthenticated || guestId || isDevMode)
   });
   
   // Add subscription
