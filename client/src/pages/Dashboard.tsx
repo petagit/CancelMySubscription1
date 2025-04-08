@@ -455,7 +455,7 @@ export default function Dashboard() {
       {/* Display dev mode status indicator */}
       {isDevMode && (
         <div className="fixed top-4 right-4 bg-red-600 text-white px-3 py-1 rounded-md text-sm font-bold">
-          DEV MODE: {guestId ? guestId.substring(0, 10) : "No Guest ID"}
+          DEV MODE: {guestId ? `${guestId}@guest.com` : "No Guest ID"}
         </div>
       )}
     </div>

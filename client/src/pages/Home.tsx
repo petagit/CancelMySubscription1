@@ -1,15 +1,19 @@
 import { Button } from "@/components/ui/button";
 import FeatureCard from "@/components/FeatureCard";
 import { useNavigate } from "react-router-dom";
-
-// For development purposes, we're bypassing authentication
-const isDevelopment = true;
+import DevModeToggle from "@/components/DevModeToggle";
+import { useState, useEffect } from "react";
 
 export default function Home() {
   const navigate = useNavigate();
-
-  // In development, we'll always consider the user as signed in
-  const isSignedIn = isDevelopment ? true : false;
+  
+  // Check if dev mode is enabled
+  const [isDevMode, setIsDevMode] = useState<boolean>(() => {
+    return localStorage.getItem("devMode") === "true";
+  });
+  
+  // The user is considered signed in if in dev mode
+  const isSignedIn = isDevMode;
 
   const handleGetStarted = () => {
     if (isSignedIn) {
@@ -75,6 +79,16 @@ export default function Home() {
           GET STARTED
         </Button>
       </div>
+      
+      {/* Dev Mode Toggle */}
+      <DevModeToggle onDevModeChange={setIsDevMode} />
+      
+      {/* Dev Mode Indicator */}
+      {isDevMode && (
+        <div className="fixed top-4 right-4 bg-red-600 text-white px-3 py-1 rounded-md text-sm font-bold">
+          DEV MODE: {localStorage.getItem('guestId') ? `${localStorage.getItem('guestId')}@guest.com` : 'No Guest ID'}
+        </div>
+      )}
     </div>
   );
 }

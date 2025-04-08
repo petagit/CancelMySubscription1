@@ -18,16 +18,37 @@ import ProtectedRoute from "./lib/protected-route";
  * Main App component
  */
 function App() {
-  // Clear any existing guest data to disable guest mode
+  // Initialize dev mode state and guest ID persistence
   useEffect(() => {
-    localStorage.removeItem('guestId');
-    const localStorageKeys = Object.keys(localStorage);
-    localStorageKeys.forEach(key => {
-      if (key.startsWith('guest_') || key.includes('subscription')) {
-        localStorage.removeItem(key);
+    // Check if dev mode is enabled
+    const isDevMode = localStorage.getItem('devMode') === 'true';
+    
+    // Only clear guest data if not in dev mode
+    if (!isDevMode) {
+      // Check if there's already a guest ID - if not, don't remove it
+      if (!localStorage.getItem('guestId')) {
+        console.log("No guest ID found, nothing to remove");
+      } else {
+        // Only remove guest ID if not in dev mode
+        localStorage.removeItem('guestId');
+        const localStorageKeys = Object.keys(localStorage);
+        localStorageKeys.forEach(key => {
+          if (key.startsWith('guest_') || key.includes('subscription')) {
+            localStorage.removeItem(key);
+          }
+        });
+        console.log("Guest mode disabled - removed guest data");
       }
-    });
-    console.log("Guest mode disabled - removed guest data");
+    } else {
+      // In dev mode, ensure we have a guest ID
+      if (!localStorage.getItem('guestId')) {
+        const newGuestId = `guest_${Date.now()}`;
+        localStorage.setItem('guestId', newGuestId);
+        console.log(`Dev mode: created new guest ID ${newGuestId}`);
+      } else {
+        console.log("Dev mode enabled - keeping guest ID:", localStorage.getItem('guestId'));
+      }
+    }
   }, []);
   
   return (

@@ -27,13 +27,16 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
-  // In development mode, always allow access
-  if (isDevelopment) {
-    console.log("Development mode: bypassing authentication check");
+  // Check if dev mode is enabled via localStorage
+  const isDevMode = localStorage.getItem('devMode') === 'true';
+  
+  // Either in dev mode or in development environment, allow access
+  if (isDevMode || isDevelopment) {
+    console.log(isDevMode ? "Dev mode enabled: bypassing authentication" : "Development environment: bypassing authentication");
     return <>{children}</>;
   }
   
-  // If not signed in and not in development, redirect to sign-in
+  // If not signed in and not in development or dev mode, redirect to sign-in
   if (!isSignedIn) {
     return <Navigate to="/sign-in" />;
   }

@@ -46,7 +46,7 @@ export default function DevModeToggle({ onDevModeChange }: DevModeToggleProps) {
       
       toast({
         title: "Dev Mode Enabled",
-        description: `Using guest ID: ${guestId}`,
+        description: `Using guest email: ${guestId}@guest.com`,
       });
     } else {
       toast({
