@@ -80,8 +80,6 @@ export default function AuthPage() {
                   <SignIn 
                     routing="hash"
                     signUpUrl="#sign-up"
-                    afterSignInUrl="/#/dashboard"
-                    forceRedirectUrl="/#/dashboard"
                     fallbackRedirectUrl="/#/dashboard"
                     appearance={{
                       elements: {
@@ -96,8 +94,6 @@ export default function AuthPage() {
                   <SignUp 
                     routing="hash"
                     signInUrl="#sign-in"
-                    afterSignUpUrl="/#/dashboard"
-                    forceRedirectUrl="/#/dashboard"
                     fallbackRedirectUrl="/#/dashboard"
                     appearance={{
                       elements: {

@@ -28,15 +28,12 @@ const clerkConfig = {
   // Use hash-based routing (based on the working implementation)
   routerType: "hash",
   
-  // Define redirect routes
+  // Define redirect routes (where to go to sign in/sign up)
   signInUrl: "#/auth",
   signUpUrl: "#/auth",
   
-  // According to latest Clerk docs
-  // This URL takes precedence over all other redirect URLs
-  forceRedirectUrl: "#/dashboard", 
-  
-  // Fallback redirect as a safety net
+  // Define the redirect behavior based on latest Clerk behavior
+  // Based on their warnings, we should use fallbackRedirectUrl
   fallbackRedirectUrl: "#/dashboard",
   
   // Add allowed domains to prevent authorization_invalid errors
@@ -44,10 +41,7 @@ const clerkConfig = {
     window.location.origin,
     "https://clerk.cancelmysub.app",
     "http://localhost:5000"
-  ],
-  
-  // Make sure we're not using any deprecated properties
-  // redirectUrl is deprecated, we're using forceRedirectUrl and fallbackRedirectUrl instead
+  ]
 };
 
 // Render the app with Clerk provider, error boundary, and BrowserRouter
