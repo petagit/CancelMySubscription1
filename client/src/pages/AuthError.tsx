@@ -1,15 +1,52 @@
 import { useNavigate } from "react-router-dom";
-import { LogOut, RefreshCw, Home } from "lucide-react";
+import { LogOut, RefreshCw, Home, UserX } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AuthError() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   
   // Create or reset guest ID
   const createGuestId = () => {
+    // First, ensure we clear any existing guest data
+    clearGuestData();
+    
+    // Then create a new guest ID
     const guestId = `guest_${Date.now()}`;
     localStorage.setItem("guestId", guestId);
     console.log("Created new guest ID for recovery:", guestId);
+    
+    toast({
+      title: "Guest Mode Activated",
+      description: "You're now using the app as a guest. Your data will be stored locally.",
+    });
+    
     navigate('/dashboard');
+  };
+  
+  // Clear all guest data
+  const clearGuestData = () => {
+    try {
+      // Clear any existing guest ID
+      localStorage.removeItem("guestId");
+      
+      // Clear any subscription data stored in localStorage
+      const localStorageKeys = Object.keys(localStorage);
+      localStorageKeys.forEach(key => {
+        if (key.startsWith('guest_') || key.includes('subscription')) {
+          localStorage.removeItem(key);
+        }
+      });
+      
+      console.log("Guest data cleared from local storage");
+      
+      toast({
+        title: "Guest Data Cleared",
+        description: "All guest data has been removed from your browser.",
+      });
+    } catch (error) {
+      console.error("Error clearing guest data:", error);
+    }
   };
   
   return (
@@ -45,6 +82,17 @@ export default function AuthError() {
           >
             <LogOut size={18} />
             <span>Continue as Guest</span>
+          </button>
+          
+          <button
+            onClick={() => {
+              clearGuestData();
+              navigate('/');
+            }}
+            className="flex w-full items-center justify-center gap-2 rounded-md border border-red-300 bg-white px-4 py-3 text-red-600 shadow-sm hover:bg-red-50"
+          >
+            <UserX size={18} />
+            <span>Clear Guest Data & Log Out</span>
           </button>
         </div>
         

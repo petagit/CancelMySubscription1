@@ -36,9 +36,22 @@ export default function Navbar() {
       setIsSigningOut(true);
       
       if (isGuestUser) {
-        // Guest logout
+        // Guest logout - completely reset the guest state
         localStorage.removeItem("guestId");
+        
+        // Clear any subscription data stored in localStorage
+        const localStorageKeys = Object.keys(localStorage);
+        localStorageKeys.forEach(key => {
+          if (key.startsWith('guest_') || key.includes('subscription')) {
+            localStorage.removeItem(key);
+          }
+        });
+        
+        console.log("Guest user logged out, local storage cleared");
+        
+        // Force a complete page reload to reset all state
         window.location.href = "/";
+        window.location.reload();
       } else if (signOut) {
         // Clerk logout
         await signOut();
