@@ -31,5 +31,5 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   // Redirect to auth page if not a guest and not authenticated
-  return <Navigate to="/auth" replace />;
+  return <Navigate to="/#/auth" replace />;
 }

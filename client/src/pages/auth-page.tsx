@@ -17,7 +17,7 @@ export default function AuthPage() {
   // Redirect to dashboard if user is already signed in
   useEffect(() => {
     if (isLoaded && isSignedIn) {
-      navigate("/dashboard");
+      navigate("/#/dashboard");
     }
   }, [isLoaded, isSignedIn, navigate]);
 
@@ -33,7 +33,7 @@ export default function AuthPage() {
         description: "You're now using the app as a guest. Your data will be stored locally.",
       });
     }
-    navigate("/dashboard");
+    navigate("/#/dashboard");
   };
 
   // Show loading state while Clerk is initializing
@@ -80,7 +80,7 @@ export default function AuthPage() {
                   <SignIn 
                     routing="hash"
                     signUpUrl="#sign-up"
-                    fallbackRedirectUrl="/dashboard"
+                    fallbackRedirectUrl="/#/dashboard"
                     appearance={{
                       elements: {
                         formButtonPrimary: "bg-black hover:bg-gray-800 text-white",
@@ -94,7 +94,7 @@ export default function AuthPage() {
                   <SignUp 
                     routing="hash"
                     signInUrl="#sign-in"
-                    fallbackRedirectUrl="/dashboard"
+                    fallbackRedirectUrl="/#/dashboard"
                     appearance={{
                       elements: {
                         formButtonPrimary: "bg-black hover:bg-gray-800 text-white",

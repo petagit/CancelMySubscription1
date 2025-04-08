@@ -29,9 +29,8 @@ const clerkConfig = {
   routerType: "hash",
   
   // Define where to redirect after auth actions
-  // When no specific redirection rules apply, go to dashboard
-  // Using fallbackRedirectUrl instead of redirectUrl as per Clerk warning
-  fallbackRedirectUrl: "/dashboard",
+  // Use a complete path with hash notation for the dashboard
+  fallbackRedirectUrl: "/#/dashboard",
   
   // Add allowed domains to prevent authorization_invalid errors
   allowedRedirectOrigins: [

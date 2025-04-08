@@ -95,7 +95,7 @@ function EnhancedProtectedRoute({ children }: { children: React.ReactNode }) {
         
         <div className="flex flex-col space-y-4">
           <button 
-            onClick={() => navigate("/auth")}
+            onClick={() => navigate("/#/auth")}
             className="bg-black text-white w-full py-2 rounded-md font-medium"
           >
             Sign In
