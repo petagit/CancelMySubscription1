@@ -1,0 +1,77 @@
+I'd be happy to help you understand how to set up protected routes with Clerk in your application. Let's look at how to implement this properly.
+When using Clerk for authentication and wanting to create protected routes, you'll need to use their middleware and route protection features. Here's how to set it up:
+First, you'll need to have Clerk properly installed in your application. Then you can implement protected routes in a few different ways depending on your framework:
+For Next.js applications (which seems most likely based on the Clerk docs link you shared):
+
+Create a middleware file to handle route protection:
+
+tsxCopy// middleware.ts
+import { authMiddleware } from "@clerk/nextjs";
+
+export default authMiddleware({
+  // Routes that can be accessed while signed out
+  publicRoutes: ["/", "/sign-in", "/sign-up", "/api/webhook/clerk"],
+  
+  // Routes that can always be accessed, and have
+  // no authentication information
+  ignoredRoutes: ["/api/public"],
+});
+
+// This configuration specifies which routes the middleware will run on
+export const config = {
+  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
+};
+
+For individual components that should only be visible to authenticated users, you can use the auth() function:
+
+tsxCopyimport { auth } from "@clerk/nextjs";
+import { redirect } from "next/navigation";
+
+export default function Dashboard() {
+  // Get the user's auth status
+  const { userId } = auth();
+  
+  // If the user is not authenticated, redirect to the sign-in page
+  if (!userId) {
+    redirect("/sign-in");
+  }
+  
+  // Render the protected content
+  return <div>This is a protected dashboard page</div>;
+}
+For React Router applications:
+jsxCopyimport { ClerkProvider, SignedIn, SignedOut, RedirectToSignIn } from "@clerk/clerk-react";
+import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
+
+function ProtectedRoute({ children }) {
+  return (
+    <>
+      <SignedIn>{children}</SignedIn>
+      <SignedOut>
+        <RedirectToSignIn />
+      </SignedOut>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <ClerkProvider publishableKey="your_publishable_key">
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<PublicPage />} />
+          <Route path="/sign-in/*" element={<SignInPage />} />
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute>
+                <DashboardPage />
+              </ProtectedRoute>
+            } 
+          />
+        </Routes>
+      </BrowserRouter>
+    </ClerkProvider>
+  );
+}
+Would you like me to provide more specific examples based on your particular framework or application structure?RetryClaude can make mistakes. Please double-check responses.

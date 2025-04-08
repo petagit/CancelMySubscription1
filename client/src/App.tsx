@@ -40,12 +40,8 @@ function EnhancedProtectedRoute({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(timeoutId);
   }, []);
 
-  // If user is signed in, show the content immediately
-  if (isSignedIn) {
-    return <>{children}</>;
-  }
-  
-  // If Clerk is still loading AND we haven't timed out the loader yet
+  // Clean implementation based on Clerk's documentation
+  // If still loading and within our grace period, show a loader
   if (!isLoaded && showLoader) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -53,12 +49,18 @@ function EnhancedProtectedRoute({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
+
+  // If signed in, render the protected content
+  if (isSignedIn) {
+    return <>{children}</>;
+  }
   
-  // Otherwise, redirect to auth
-  // Using replace:true to avoid back button issues
+  // If authentication has completed and user is not signed in, redirect to auth
   useEffect(() => {
-    navigate("/#/auth", { replace: true });
-  }, [navigate]);
+    if (isLoaded && !isSignedIn) {
+      navigate("/#/auth", { replace: true });
+    }
+  }, [isLoaded, isSignedIn, navigate]);
   
   // Meanwhile, show authentication required
   return (
