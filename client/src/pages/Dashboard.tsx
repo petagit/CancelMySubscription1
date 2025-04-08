@@ -69,20 +69,27 @@ export default function Dashboard() {
   // Add subscription
   const addSubscriptionMutation = useMutation({
     mutationFn: async (newSubscription: Omit<InsertSubscription, "id" | "isActive">) => {
+      console.log("Original new subscription data:", newSubscription);
+      
       // Add guestId for unauthenticated users
       // Need to ensure proper types for database compatibility
       const subscriptionData = {
         ...newSubscription,
-        // For authenticated users, convert clerkId to numeric userId (or 0) for database compatibility
-        // For guest users, use guestId
-        userId: isAuthenticated && clerkUser ? parseInt(clerkUser.id, 10) || 0 : null,
-        guestId: isAuthenticated ? null : guestId
+        // For authenticated users, we'll let the server determine userId from clerkUser
+        // Don't try to convert clerkId to number as that causes issues
+        userId: null, // Let the server handle this
+        guestId: isAuthenticated ? null : guestId,
+        // Ensure date is in correct format
+        nextBillingDate: new Date(newSubscription.nextBillingDate || new Date())
       };
+      
+      console.log("Prepared subscription data:", subscriptionData);
       
       // For guest users, append the guestId as a query parameter
       const queryParams = isAuthenticated ? '' : getQueryParams();
       const url = `/api/subscriptions${queryParams}`;
       
+      console.log("Request URL:", url);
       const res = await apiRequest("POST", url, subscriptionData);
       return res.json();
     },

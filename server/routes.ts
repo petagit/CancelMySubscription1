@@ -114,15 +114,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create a new subscription
   app.post("/api/subscriptions", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const userId = req.user?.id;
+      // Get Clerk user or regular user from the request
+      const clerkUser = req.clerkUser;
+      const regularUser = req.user;
+      
+      // Debug log
+      console.log("POST /api/subscriptions - Request body:", req.body);
+      console.log("Clerk user:", clerkUser ? clerkUser.id : null);
+      console.log("Regular user:", regularUser ? regularUser.id : null);
+      
+      let userId = null;
+      
+      // Get user ID based on authentication method
+      if (clerkUser) {
+        // If authenticated with Clerk, try to get the user from our database
+        try {
+          const dbUser = await storage.getUserByClerkId(clerkUser.id);
+          if (dbUser) {
+            userId = dbUser.id;
+            console.log("Found user ID from Clerk user:", userId);
+          } else {
+            // If user doesn't exist yet, create one
+            console.log("User doesn't exist in our database yet. Creating...");
+            const username = clerkUser.username || clerkUser.emailAddresses?.[0]?.emailAddress || `user_${clerkUser.id}`;
+            const createdUser = await storage.createUser({
+              username,
+              password: 'clerk-managed', // Password is managed by Clerk
+              clerkId: clerkUser.id
+            });
+            userId = createdUser.id;
+            console.log("Created new user with ID:", userId);
+          }
+        } catch (err) {
+          console.error("Error getting/creating user from Clerk:", err);
+          // If we can't get or create a user, we'll proceed with a null userId and use guest mode
+        }
+      } else if (regularUser) {
+        // Regular session user
+        userId = regularUser.id;
+        console.log("Using regular session user ID:", userId);
+      }
       
       // Generate a guest ID if needed - either use from request or create a new one
       const guestId = !userId ? (req.query.guestId as string || req.body.guestId || `guest-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`) : null;
+      console.log("Guest ID:", guestId);
       
       // For guest users, check the subscription limit (5)
       if (!userId && guestId) {
         // Get existing subscriptions for this guest user
         const existingSubscriptions = await storage.getSubscriptionsByGuestId(guestId);
+        console.log("Existing subscriptions count:", existingSubscriptions.length);
         
         // If they already have 5 or more, don't allow more
         if (existingSubscriptions.length >= 5) {
@@ -132,20 +173,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      const subscriptionData = insertSubscriptionSchema.parse({
+      console.log("Preparing subscription data with:", { userId, guestId, body: req.body });
+      
+      // Create a data object with the correct types
+      const subscriptionToCreate = {
         ...req.body,
-        userId, // Will be null for guest users
-        guestId // Will be set for guest users
-      });
+        userId: userId, // User ID from either Clerk or session
+        guestId: guestId, // Guest ID for unauthenticated users
+        amount: typeof req.body.amount === 'string' ? req.body.amount : String(req.body.amount), // Ensure amount is a string
+        nextBillingDate: new Date(req.body.nextBillingDate) // Convert string date to Date
+      };
+      
+      console.log("Subscription data to parse:", subscriptionToCreate);
+      
+      const subscriptionData = insertSubscriptionSchema.parse(subscriptionToCreate);
+      
+      console.log("Parsed subscription data:", subscriptionData);
       
       const subscription = await storage.createSubscription(subscriptionData);
       return res.status(201).json(subscription);
     } catch (error) {
+      console.error("Error creating subscription:", error);
+      
       if (error instanceof z.ZodError) {
         const validationError = fromZodError(error);
+        console.error("Validation error:", validationError.message);
         return res.status(400).json({ message: validationError.message });
       }
-      return res.status(500).json({ message: "Failed to create subscription" });
+      
+      return res.status(500).json({ message: "Failed to create subscription", error: String(error) });
     }
   });
   
