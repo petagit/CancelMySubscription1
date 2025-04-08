@@ -116,7 +116,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user?.id;
       
       // Generate a guest ID if needed - either use from request or create a new one
-      const guestId = !userId ? (req.body.guestId || `guest-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`) : null;
+      const guestId = !userId ? (req.query.guestId as string || req.body.guestId || `guest-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`) : null;
+      
+      // For guest users, check the subscription limit (5)
+      if (!userId && guestId) {
+        // Get existing subscriptions for this guest user
+        const existingSubscriptions = await storage.getSubscriptionsByGuestId(guestId);
+        
+        // If they already have 5 or more, don't allow more
+        if (existingSubscriptions.length >= 5) {
+          return res.status(403).json({ 
+            message: "Guest users are limited to 5 subscriptions. Please sign up for a free account to add more." 
+          });
+        }
+      }
       
       const subscriptionData = insertSubscriptionSchema.parse({
         ...req.body,

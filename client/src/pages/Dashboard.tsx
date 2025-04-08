@@ -79,7 +79,11 @@ export default function Dashboard() {
         guestId: isAuthenticated ? null : guestId
       };
       
-      const res = await apiRequest("POST", "/api/subscriptions", subscriptionData);
+      // For guest users, append the guestId as a query parameter
+      const queryParams = isAuthenticated ? '' : getQueryParams();
+      const url = `/api/subscriptions${queryParams}`;
+      
+      const res = await apiRequest("POST", url, subscriptionData);
       return res.json();
     },
     onSuccess: () => {
@@ -92,11 +96,37 @@ export default function Dashboard() {
       });
     },
     onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to add subscription",
-        variant: "destructive",
-      });
+      // Check if we received a proper error response from the server
+      let errorMessage = "Failed to add subscription";
+      
+      try {
+        // Try to parse the error response
+        if (error.response) {
+          const responseData = error.response.json();
+          if (responseData && responseData.message) {
+            errorMessage = responseData.message;
+          }
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+      } catch (e) {
+        console.error("Error parsing error response:", e);
+      }
+      
+      // Show user-friendly message for guest limit
+      if (errorMessage.toLowerCase().includes("guest users are limited")) {
+        toast({
+          title: "Guest Limit Reached",
+          description: "You've reached the 5 subscription limit for guest users. Sign up for a free account to add more.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     }
   });
   
@@ -140,6 +170,11 @@ export default function Dashboard() {
   // Use real data or defaults
   const statsData = stats || defaultStats;
   const subscriptionsList = subscriptions || [];
+  
+  // Check if guest user is approaching subscription limit
+  const isGuestUser = !isAuthenticated;
+  const isApproachingLimit = isGuestUser && subscriptionsList.length >= 3; // Show warning at 3+ subscriptions
+  const hasReachedLimit = isGuestUser && subscriptionsList.length >= 5;
 
   // Import/Export functions
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -251,6 +286,38 @@ export default function Dashboard() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      {/* Guest user warning banner */}
+      {isApproachingLimit && !hasReachedLimit && (
+        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6 rounded shadow">
+          <div className="flex items-center">
+            <AlertCircle className="h-5 w-5 mr-2" />
+            <p>
+              <span className="font-bold">Guest mode: </span>
+              You're using {subscriptionsList.length} of 5 available subscriptions. 
+              <a href="/auth" className="underline ml-1 font-medium">
+                Sign up for free
+              </a> to add unlimited subscriptions.
+            </p>
+          </div>
+        </div>
+      )}
+      
+      {/* When limit is reached */}
+      {hasReachedLimit && (
+        <div className="bg-orange-100 border-l-4 border-orange-500 text-orange-700 p-4 mb-6 rounded shadow">
+          <div className="flex items-center">
+            <AlertCircle className="h-5 w-5 mr-2" />
+            <p>
+              <span className="font-bold">Guest mode limit reached: </span>
+              You've used all 5 available guest subscriptions. 
+              <a href="/auth" className="underline ml-1 font-medium">
+                Sign up for free
+              </a> to add more.
+            </p>
+          </div>
+        </div>
+      )}
+      
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <StatsCard 
@@ -316,8 +383,10 @@ export default function Dashboard() {
           <Button 
             onClick={() => setOpen(true)}
             className="bg-black text-white font-bold py-3 px-8 rounded-md hover:bg-gray-800 transition duration-300"
+            disabled={hasReachedLimit}
+            title={hasReachedLimit ? "Guest users are limited to 5 subscriptions" : "Add a new subscription"}
           >
-            ADD NEW SUBSCRIPTION
+            {hasReachedLimit ? "LIMIT REACHED - SIGN UP FOR MORE" : "ADD NEW SUBSCRIPTION"}
           </Button>
         </div>
       </div>
