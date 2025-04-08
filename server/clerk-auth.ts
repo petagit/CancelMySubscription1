@@ -15,13 +15,45 @@ declare global {
 // Middleware to verify Clerk session
 export async function requireClerkAuth(req: Request, res: Response, next: NextFunction) {
   try {
+    // Check for dev mode
+    const devMode = req.query.devMode === 'true';
+    
+    // Check for guest ID in query parameters
+    const guestId = req.query.guestId as string | undefined;
+    
+    // If in dev mode or guest ID is present, allow the request to proceed
+    if (devMode && guestId) {
+      console.log('Development mode enabled with guest ID:', guestId);
+      req.clerkUser = null; // No clerk user in dev/guest mode
+      return next();
+    }
+    
+    // Normal authentication flow
     // Get the session token from the Authorization header
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      // If guest ID is present without dev mode, allow guest access
+      if (guestId) {
+        console.log('Allowing guest access with ID:', guestId);
+        req.clerkUser = null;
+        return next();
+      }
+      
       return res.status(401).json({ message: 'Missing authentication token' });
     }
     
     const sessionToken = authHeader.split(' ')[1];
+    
+    // Special case for dev mode with token
+    if (process.env.NODE_ENV === 'development' && sessionToken === 'dev_bypass_auth') {
+      console.log('Bypassing authentication in development mode with token');
+      req.clerkUser = { 
+        id: 'dev_user_id', 
+        username: 'dev_user',
+        emailAddresses: [{ emailAddress: 'dev@example.com' }]
+      };
+      return next();
+    }
     
     try {
       // Verify the session with Clerk

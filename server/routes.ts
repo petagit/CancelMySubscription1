@@ -13,8 +13,17 @@ const BYPASS_AUTH = process.env.NODE_ENV === 'production' ? false : true;
 
 // Simple middleware to handle both authenticated users and guest users
 function isAuthenticated(req: Request, res: Response, next: NextFunction) {
+  // Check if dev mode is enabled
+  const devMode = req.query.devMode === 'true';
+  
   // Guest mode - if there's a guestId, allow access
+  // In dev mode, we'll always go through with the request if there's a guestId
   if (req.query.guestId) {
+    if (devMode) {
+      console.log("Dev mode enabled. Using guest ID:", req.query.guestId);
+    } else {
+      console.log("Guest mode with ID:", req.query.guestId);
+    }
     return next();
   }
   
@@ -25,6 +34,7 @@ function isAuthenticated(req: Request, res: Response, next: NextFunction) {
   
   // Testing bypass
   if (BYPASS_AUTH) {
+    console.log("DEV BYPASS: Using test user with ID 1");
     (req as any).user = { id: 1 };
     return next();
   }

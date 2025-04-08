@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import StatsCard from "@/components/StatsCard";
 import SubscriptionsList from "@/components/SubscriptionsList";
 import AddSubscriptionDialog from "@/components/AddSubscriptionDialog";
+import DevModeToggle from "@/components/DevModeToggle";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
@@ -16,14 +17,56 @@ export default function Dashboard() {
   const { isSignedIn } = useClerkAuth();
   const { user: clerkUser } = useUser();
   
-  // Determine if we're using a guest ID or clerk authentication
-  const isAuthenticated = isSignedIn && clerkUser;
+  // Dev mode state
+  const [isDevMode, setIsDevMode] = useState<boolean>(() => {
+    const saved = localStorage.getItem("devMode");
+    return saved === "true";
+  });
   
-  // Simple guest mode implementation
-  const guestId = localStorage.getItem("guestId");
+  // Determine if we're using a guest ID or clerk authentication
+  // In dev mode, always use guest ID regardless of auth status
+  const isAuthenticated = !isDevMode && isSignedIn && clerkUser;
+  
+  // Simple guest mode implementation 
+  const [guestId, setGuestId] = useState<string | null>(() => {
+    return localStorage.getItem("guestId");
+  });
+  
+  // Effect to handle guest ID when dev mode changes
+  useEffect(() => {
+    // If dev mode is enabled and no guest ID, create one
+    if (isDevMode && !guestId) {
+      const newGuestId = `guest_${Date.now()}`;
+      localStorage.setItem("guestId", newGuestId);
+      setGuestId(newGuestId);
+    }
+  }, [isDevMode, guestId]);
+  
+  // Handle dev mode toggle
+  const handleDevModeChange = (enabled: boolean) => {
+    setIsDevMode(enabled);
+    // If we're enabling dev mode, make sure we refetch data with the guest ID
+    if (enabled) {
+      queryClient.invalidateQueries({ queryKey: ["/api/subscriptions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+    }
+  };
   
   // Build API query parameters
   const getQueryParams = () => {
+    // In dev mode, always use guest ID and add devMode parameter
+    if (isDevMode) {
+      // Ensure we have a guest ID
+      let currentGuestId = guestId;
+      if (!currentGuestId) {
+        currentGuestId = `guest_${Date.now()}`;
+        localStorage.setItem("guestId", currentGuestId);
+        setGuestId(currentGuestId);
+      }
+      return `?guestId=${encodeURIComponent(currentGuestId)}&devMode=true`;
+    }
+    
+    // Normal authentication flow
     if (isAuthenticated) {
       return ""; // Authenticated user doesn't need guestId
     }
@@ -32,6 +75,7 @@ export default function Dashboard() {
     if (!guestId) {
       const newGuestId = `guest_${Date.now()}`;
       localStorage.setItem("guestId", newGuestId);
+      setGuestId(newGuestId);
       return `?guestId=${encodeURIComponent(newGuestId)}`;
     }
     
@@ -404,6 +448,16 @@ export default function Dashboard() {
         onOpenChange={setOpen}
         onSubmit={handleAddSubscription}
       />
+      
+      {/* Dev Mode Toggle Button */}
+      <DevModeToggle onDevModeChange={handleDevModeChange} />
+      
+      {/* Display dev mode status indicator */}
+      {isDevMode && (
+        <div className="fixed top-4 right-4 bg-red-600 text-white px-3 py-1 rounded-md text-sm font-bold">
+          DEV MODE: {guestId ? guestId.substring(0, 10) : "No Guest ID"}
+        </div>
+      )}
     </div>
   );
 }
