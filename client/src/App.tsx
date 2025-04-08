@@ -27,9 +27,24 @@ function EnhancedProtectedRoute({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const { isLoaded, isSignedIn } = useClerkAuth();
   
-  // Check for guest ID
-  const hasGuestId = !!localStorage.getItem("guestId");
+  // State to track guest ID
+  const [guestId, setGuestId] = useState<string | null>(null);
   const [showLoader, setShowLoader] = useState(true);
+  
+  // Initialize guest ID on mount and track changes
+  useEffect(() => {
+    // Get guest ID from localStorage
+    const storedGuestId = createOrGetGuestId();
+    setGuestId(storedGuestId);
+    
+    // Listen for storage changes (if user modifies in another tab)
+    const handleStorageChange = () => {
+      setGuestId(localStorage.getItem("guestId"));
+    };
+    
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
   
   // Only show loading spinner briefly
   useEffect(() => {
@@ -42,7 +57,7 @@ function EnhancedProtectedRoute({ children }: { children: React.ReactNode }) {
   }, []);
 
   // If user is signed in or has a guest ID, show the content immediately
-  if (isSignedIn || hasGuestId) {
+  if (isSignedIn || guestId) {
     return <>{children}</>;
   }
   
@@ -118,14 +133,32 @@ function Router() {
   );
 }
 
+/**
+ * Helper function to manage guest ID
+ */
+function createOrGetGuestId(): string {
+  let guestId = localStorage.getItem('guestId');
+  
+  // If no guest ID exists, create one
+  if (!guestId) {
+    guestId = `guest_${Date.now()}`;
+    localStorage.setItem('guestId', guestId);
+    console.log("Created new guest ID:", guestId);
+  } else {
+    console.log("Using existing guest ID:", guestId);
+  }
+  
+  return guestId;
+}
+
 function App() {
-  // Auto-create a guest ID if none exists
+  // Always ensure a guest ID exists
   useEffect(() => {
-    if (!localStorage.getItem('guestId')) {
-      const newGuestId = `guest_${Date.now()}`;
-      console.log("Creating default guest ID:", newGuestId);
-      localStorage.setItem('guestId', newGuestId);
-    }
+    // Create or get guest ID immediately on load
+    createOrGetGuestId();
+    
+    // Also add a simple message to show the current guest ID
+    console.log("Current guest ID:", localStorage.getItem('guestId'));
   }, []);
   
   // Set up a timeout to detect Clerk initialization failures

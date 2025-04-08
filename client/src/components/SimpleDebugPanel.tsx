@@ -18,7 +18,9 @@ export default function SimpleDebugPanel() {
   useEffect(() => {
     // Update guest ID from localStorage
     const updateGuestId = () => {
-      setGuestId(localStorage.getItem("guestId"));
+      const storedGuestId = localStorage.getItem("guestId");
+      console.log("Current guest ID from localStorage:", storedGuestId);
+      setGuestId(storedGuestId);
     };
     
     // Initial update
@@ -26,6 +28,9 @@ export default function SimpleDebugPanel() {
     
     // Set up listener for localStorage changes
     window.addEventListener('storage', updateGuestId);
+    
+    // Check again after a short delay to ensure it's loaded
+    setTimeout(updateGuestId, 500);
     
     // Track Clerk errors
     const handleError = (event: ErrorEvent) => {
