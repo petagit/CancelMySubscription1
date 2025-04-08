@@ -9,13 +9,34 @@ export default function SimpleDebugPanel() {
   const [isVisible, setIsVisible] = useState(true);
   const [guestId, setGuestId] = useState<string | null>(null);
   const [apiErrors, setApiErrors] = useState<string[]>([]);
+  const [clerkErrors, setClerkErrors] = useState<string[]>([]);
   
   // Get auth state
   const { isLoaded, isSignedIn, userId } = useAuth();
   
-  // Track guest ID
+  // Track guest ID and Clerk errors
   useEffect(() => {
-    setGuestId(localStorage.getItem("guestId"));
+    // Update guest ID from localStorage
+    const updateGuestId = () => {
+      setGuestId(localStorage.getItem("guestId"));
+    };
+    
+    // Initial update
+    updateGuestId();
+    
+    // Set up listener for localStorage changes
+    window.addEventListener('storage', updateGuestId);
+    
+    // Track Clerk errors
+    const handleError = (event: ErrorEvent) => {
+      if (event.error && 
+          (event.error.toString().includes('Clerk') || 
+           event.message?.includes('Clerk'))) {
+        setClerkErrors(prev => [...prev, event.error.toString()]);
+      }
+    };
+    
+    window.addEventListener('error', handleError);
     
     // Function to check for API errors
     const checkForErrors = () => {
@@ -30,6 +51,8 @@ export default function SimpleDebugPanel() {
     const intervalId = setInterval(checkForErrors, 2000);
     
     return () => {
+      window.removeEventListener('storage', updateGuestId);
+      window.removeEventListener('error', handleError);
       clearInterval(intervalId);
     };
   }, []);
@@ -129,7 +152,7 @@ export default function SimpleDebugPanel() {
           </div>
         </section>
         
-        {/* Errors */}
+        {/* API Errors */}
         {apiErrors.length > 0 && (
           <section>
             <h4 className="font-semibold text-red-300 border-b border-gray-600 pb-1 mb-1">API Errors</h4>
@@ -142,6 +165,26 @@ export default function SimpleDebugPanel() {
             </div>
             <button 
               onClick={() => setApiErrors([])}
+              className="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs mt-1"
+            >
+              Clear Errors
+            </button>
+          </section>
+        )}
+        
+        {/* Clerk Errors */}
+        {clerkErrors.length > 0 && (
+          <section>
+            <h4 className="font-semibold text-orange-300 border-b border-gray-600 pb-1 mb-1">Clerk Errors</h4>
+            <div className="text-orange-400 text-xs overflow-auto max-h-20">
+              {clerkErrors.map((error, index) => (
+                <div key={index} className="mb-1">
+                  {error}
+                </div>
+              ))}
+            </div>
+            <button 
+              onClick={() => setClerkErrors([])}
               className="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs mt-1"
             >
               Clear Errors
