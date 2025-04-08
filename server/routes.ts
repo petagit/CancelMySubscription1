@@ -13,33 +13,50 @@ const BYPASS_AUTH = process.env.NODE_ENV === 'production' ? false : true;
 
 // Simple middleware to handle both authenticated users and guest users
 function isAuthenticated(req: Request, res: Response, next: NextFunction) {
+  console.log('=== isAuthenticated Middleware ===');
+  console.log('Request URL:', req.url);
+  console.log('Request method:', req.method);
+  console.log('Request query params:', req.query);
+  
   // Check if dev mode is enabled
   const devMode = req.query.devMode === 'true';
+  console.log('Dev mode enabled:', devMode);
   
   // Guest mode - if there's a guestId, allow access
   // In dev mode, we'll always go through with the request if there's a guestId
   if (req.query.guestId) {
     if (devMode) {
-      console.log("Dev mode enabled. Using guest ID:", req.query.guestId);
+      console.log("ALLOWING REQUEST: Dev mode enabled with guest ID:", req.query.guestId);
     } else {
-      console.log("Guest mode with ID:", req.query.guestId);
+      console.log("ALLOWING REQUEST: Guest mode with ID:", req.query.guestId);
     }
     return next();
   }
   
   // Authenticated users
-  if (req.isAuthenticated() || req.clerkUser) {
+  const isNormalAuth = req.isAuthenticated();
+  const hasClerkUser = !!req.clerkUser;
+  console.log('Authentication status:', { 
+    isNormalAuth, 
+    hasClerkUser,
+    clerkUserId: req.clerkUser?.id,
+    sessionUserId: req.user?.id
+  });
+  
+  if (isNormalAuth || hasClerkUser) {
+    console.log("ALLOWING REQUEST: User is authenticated via", isNormalAuth ? "session" : "Clerk");
     return next();
   }
   
   // Testing bypass
   if (BYPASS_AUTH) {
-    console.log("DEV BYPASS: Using test user with ID 1");
+    console.log("ALLOWING REQUEST: DEV BYPASS mode using test user with ID 1");
     (req as any).user = { id: 1 };
     return next();
   }
   
   // Not authenticated
+  console.log("AUTH FAILED: No valid authentication method found");
   res.status(401).json({ message: "Not authenticated" });
 }
 
@@ -68,56 +85,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get user stats for the authenticated user or guest
   app.get("/api/stats", isAuthenticated, async (req: Request, res: Response) => {
     try {
+      console.log('=== GET /api/stats ===');
+      
       const userId = req.user?.id;
       // Check if a guestId was provided in the query parameters
       const guestId = req.query.guestId as string | undefined;
+      const clerkUser = req.clerkUser;
+      
+      console.log('Request user data:', {
+        userId,
+        guestId,
+        hasClerkUser: !!clerkUser,
+        clerkUserId: clerkUser?.id,
+        clerkUserEmail: clerkUser?.emailAddresses?.[0]?.emailAddress
+      });
       
       let stats: Stats;
       
       if (userId) {
+        console.log('Using userId for stats lookup:', userId);
         // Get stats for authenticated user
         stats = await storage.getSubscriptionStats(userId);
       } else if (guestId) {
+        console.log('Using guestId for stats lookup:', guestId);
         // Get stats for guest user
         stats = await storage.getSubscriptionStatsForGuest(guestId);
       } else if (BYPASS_AUTH) {
+        console.log('Using BYPASS_AUTH with test user ID 1');
         // In bypass mode, get test user stats
         stats = await storage.getSubscriptionStats(1);
       } else {
+        console.log('ERROR: No valid authentication method found');
         return res.status(400).json({ message: "Either user authentication or guestId is required" });
       }
       
+      console.log('Stats retrieved successfully:', stats);
       return res.status(200).json(stats);
     } catch (error) {
-      return res.status(500).json({ message: "Failed to fetch stats" });
+      console.error('Error fetching stats:', error);
+      return res.status(500).json({ message: "Failed to fetch stats", error: String(error) });
     }
   });
   
   // Get all subscriptions for the authenticated user or guest
   app.get("/api/subscriptions", isAuthenticated, async (req: Request, res: Response) => {
     try {
+      console.log('=== GET /api/subscriptions ===');
+      
       const userId = req.user?.id;
       // Check if a guestId was provided in the query parameters
       const guestId = req.query.guestId as string | undefined;
+      const clerkUser = req.clerkUser;
+      
+      console.log('Request auth data:', {
+        sessionUserId: userId,
+        guestId,
+        hasClerkUser: !!clerkUser,
+        clerkUserId: clerkUser?.id,
+        clerkUserEmail: clerkUser?.emailAddresses?.[0]?.emailAddress
+      });
       
       let subscriptions: Subscription[] = [];
       
       if (userId) {
+        console.log('Fetching subscriptions for userId:', userId);
         // Fetch subscriptions for authenticated user
         subscriptions = await storage.getSubscriptionsByUserId(userId);
+        console.log(`Found ${subscriptions.length} subscriptions for user ID ${userId}`);
       } else if (guestId) {
+        console.log('Fetching subscriptions for guestId:', guestId);
         // Fetch subscriptions for guest user
         subscriptions = await storage.getSubscriptionsByGuestId(guestId);
+        console.log(`Found ${subscriptions.length} subscriptions for guest ID ${guestId}`);
       } else if (BYPASS_AUTH) {
+        console.log('Using BYPASS_AUTH with test user ID 1');
         // In bypass mode, get test user subscriptions
         subscriptions = await storage.getSubscriptionsByUserId(1);
+        console.log(`Found ${subscriptions.length} subscriptions for test user ID 1`);
       } else {
+        console.log('ERROR: No valid authentication method found');
         return res.status(400).json({ message: "Either user authentication or guestId is required" });
       }
       
+      console.log(`Successfully returning ${subscriptions.length} subscriptions`);
       return res.status(200).json(subscriptions);
     } catch (error) {
-      return res.status(500).json({ message: "Failed to fetch subscriptions" });
+      console.error('Error fetching subscriptions:', error);
+      return res.status(500).json({ message: "Failed to fetch subscriptions", error: String(error) });
     }
   });
   

@@ -57,11 +57,51 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getUserByClerkId(clerkId: string): Promise<User | undefined> {
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.clerkId, clerkId));
-    return user;
+    console.log(`=== Looking up user by Clerk ID: ${clerkId} ===`);
+    
+    try {
+      // First, check if the clerkId is valid
+      if (!clerkId) {
+        console.log('Invalid Clerk ID: null or empty');
+        return undefined;
+      }
+      
+      // Log the actual SQL query that would be executed
+      const query = db
+        .select()
+        .from(users)
+        .where(eq(users.clerkId, clerkId));
+      
+      console.log('Executing SQL query:', query.toSQL());
+      
+      const [user] = await query;
+      
+      if (user) {
+        console.log(`Found user with ID ${user.id} for Clerk ID ${clerkId}`);
+        console.log(`User details: username=${user.username}, clerkId=${user.clerkId}`);
+      } else {
+        console.log(`No user found with Clerk ID: ${clerkId}`);
+        
+        // If not found by exact match, try to find users with similar clerk IDs to debug issues
+        const allUsers = await db.select().from(users);
+        console.log(`Total users in database: ${allUsers.length}`);
+        
+        const usersWithClerkIds = allUsers.filter(u => u.clerkId);
+        console.log(`Users with Clerk IDs: ${usersWithClerkIds.length}`);
+        
+        if (usersWithClerkIds.length > 0) {
+          console.log('Sample of users with Clerk IDs:');
+          usersWithClerkIds.slice(0, 5).forEach(u => {
+            console.log(`- User ID: ${u.id}, username: ${u.username}, clerkId: ${u.clerkId}`);
+          });
+        }
+      }
+      
+      return user;
+    } catch (error) {
+      console.error(`Error looking up user by Clerk ID ${clerkId}:`, error);
+      throw error;
+    }
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
