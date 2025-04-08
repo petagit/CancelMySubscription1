@@ -55,6 +55,12 @@ function EnhancedProtectedRoute({ children }: { children: React.ReactNode }) {
   }
   
   // Otherwise, redirect to auth
+  // Using replace:true to avoid back button issues
+  useEffect(() => {
+    navigate("/#/auth", { replace: true });
+  }, [navigate]);
+  
+  // Meanwhile, show authentication required
   return (
     <div className="flex flex-col items-center space-y-6 pt-10">
       <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
@@ -65,7 +71,7 @@ function EnhancedProtectedRoute({ children }: { children: React.ReactNode }) {
         
         <div className="flex flex-col space-y-4">
           <button 
-            onClick={() => navigate("/auth")}
+            onClick={() => navigate("/#/auth", { replace: true })}
             className="bg-black text-white w-full py-2 rounded-md font-medium"
           >
             Sign In

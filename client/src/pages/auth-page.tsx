@@ -80,7 +80,8 @@ export default function AuthPage() {
                   <SignIn 
                     routing="hash"
                     signUpUrl="#sign-up"
-                    fallbackRedirectUrl="/#/dashboard"
+                    redirectUrl="/#/dashboard"
+                    forceRedirect={true}
                     appearance={{
                       elements: {
                         formButtonPrimary: "bg-black hover:bg-gray-800 text-white",
@@ -94,7 +95,8 @@ export default function AuthPage() {
                   <SignUp 
                     routing="hash"
                     signInUrl="#sign-in"
-                    fallbackRedirectUrl="/#/dashboard"
+                    redirectUrl="/#/dashboard"
+                    forceRedirect={true}
                     appearance={{
                       elements: {
                         formButtonPrimary: "bg-black hover:bg-gray-800 text-white",

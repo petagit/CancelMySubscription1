@@ -29,12 +29,15 @@ const clerkConfig = {
   routerType: "hash",
   
   // Define redirect routes
-  signInUrl: "/#/auth",
-  signUpUrl: "/#/auth",
+  signInUrl: "#/auth",
+  signUpUrl: "#/auth",
   
-  // Using the recommended properties instead of deprecated ones
-  // This is the URL users will be redirected to after sign in/up if no other redirect is specified
-  fallbackRedirectUrl: "/#/dashboard",
+  // According to latest Clerk docs
+  // This URL takes precedence over all other redirect URLs
+  forceRedirectUrl: "#/dashboard", 
+  
+  // Fallback redirect as a safety net
+  fallbackRedirectUrl: "#/dashboard",
   
   // Add allowed domains to prevent authorization_invalid errors
   allowedRedirectOrigins: [
