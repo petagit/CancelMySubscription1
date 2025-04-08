@@ -10,7 +10,7 @@ import { setupClerkAuth } from "./clerk-auth";
 // For testing purposes - allow API access without authentication (set to false to enforce auth)
 const BYPASS_AUTH = false;
 
-// Middleware to ensure a user is authenticated
+// Middleware to ensure a user is authenticated or using guest mode
 function isAuthenticated(req: Request, res: Response, next: NextFunction) {
   // If BYPASS_AUTH is enabled, use user ID 1 as a test user
   if (BYPASS_AUTH) {
@@ -21,7 +21,19 @@ function isAuthenticated(req: Request, res: Response, next: NextFunction) {
     return next();
   }
   
+  // Check if this is a guest request (has guestId parameter)
+  if (req.query.guestId) {
+    // Guest requests are allowed - proceed without authentication
+    return next();
+  }
+  
+  // Check for traditional authentication
   if (req.isAuthenticated()) {
+    return next();
+  }
+  
+  // Check for Clerk authentication (handled separately via requireClerkAuth)
+  if (req.clerkUser) {
     return next();
   }
   
