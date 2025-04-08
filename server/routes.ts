@@ -7,8 +7,9 @@ import { fromZodError } from "zod-validation-error";
 import { setupAuth } from "./auth";
 import { setupClerkAuth } from "./clerk-auth";
 
-// For testing purposes - allow API access without authentication (set to false to enforce auth)
-const BYPASS_AUTH = false;
+// For development purposes - allow API access without authentication 
+// Set to true during development to bypass auth checks
+const BYPASS_AUTH = process.env.NODE_ENV === 'production' ? false : true;
 
 // Simple middleware to handle both authenticated users and guest users
 function isAuthenticated(req: Request, res: Response, next: NextFunction) {

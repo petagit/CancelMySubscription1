@@ -7,9 +7,12 @@ interface ProtectedRouteProps {
   children: ReactNode;
 }
 
+// Check if we're in development mode
+const isDevelopment = import.meta.env.DEV || window.location.hostname === 'localhost';
+
 /**
  * A component that protects routes by checking if the user is authenticated
- * If not authenticated, redirects to sign-in page
+ * If not authenticated, redirects to sign-in page unless in development mode
  * If auth is still loading, shows a loading spinner
  */
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
@@ -24,7 +27,13 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
-  // If not signed in, redirect to sign-in
+  // In development mode, always allow access
+  if (isDevelopment) {
+    console.log("Development mode: bypassing authentication check");
+    return <>{children}</>;
+  }
+  
+  // If not signed in and not in development, redirect to sign-in
   if (!isSignedIn) {
     return <Navigate to="/sign-in" />;
   }
