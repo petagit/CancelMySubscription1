@@ -30,4 +30,4 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   
   // Otherwise, redirect to sign-in page
   return <Navigate to="/sign-in" replace />;
-}
+} 
