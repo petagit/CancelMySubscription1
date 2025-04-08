@@ -8,6 +8,7 @@ import Dashboard from "@/pages/Dashboard";
 import AuthPage from "@/pages/auth-page";
 import Blog from "@/pages/Blog";
 import BlogPost from "@/pages/BlogPost";
+import AuthError from "@/pages/AuthError";
 import Layout from "@/components/Layout";
 import { Loader2 } from "lucide-react";
 import SimpleDebugPanel from "@/components/SimpleDebugPanel";
@@ -114,6 +115,7 @@ function Router() {
         {/* Public routes */}
         <Route path="/" element={<Home />} />
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/auth-error" element={<AuthError />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slug" element={<BlogPost />} />
         
@@ -202,8 +204,20 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <SimpleDebugPanel />
       {clerkFailed && (
-        <div className="fixed top-0 left-0 right-0 bg-yellow-500 text-black p-2 z-50 text-center">
-          Authentication service is unavailable. Using guest mode.
+        <div className="fixed top-0 left-0 right-0 bg-yellow-500 text-black p-2 z-50 text-center flex items-center justify-center">
+          <span>Authentication service is unavailable. Using guest mode.</span>
+          <button 
+            onClick={() => window.location.href = '/'}
+            className="ml-4 bg-black text-white px-3 py-1 rounded text-sm"
+          >
+            Return Home
+          </button>
+          <button 
+            onClick={() => window.location.href = '/auth-error'}
+            className="ml-2 bg-gray-700 text-white px-3 py-1 rounded text-sm"
+          >
+            Recovery Options
+          </button>
         </div>
       )}
       <Router />

@@ -1,5 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -62,25 +63,36 @@ class ClerkErrorBoundaryClass extends Component<ErrorBoundaryProps, ErrorBoundar
  */
 export function ClerkErrorBoundary({ children }: ErrorBoundaryProps): JSX.Element {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const hasShownToast = useRef(false);
+  const hasRedirected = useRef(false);
   
   const handleError = (error: Error) => {
     if (!hasShownToast.current) {
       console.log('Showing toast for Clerk error:', error.message);
       toast({
         title: "Authentication Notice",
-        description: "We're having trouble with our login service. You can continue using the app as a guest or try again later.",
+        description: "We're having trouble with our login service. Redirecting to recovery page...",
         variant: "destructive",
         duration: 5000,
       });
       hasShownToast.current = true;
+      
+      // Redirect to auth error page after a short delay
+      if (!hasRedirected.current && error.toString().includes('Clerk')) {
+        hasRedirected.current = true;
+        setTimeout(() => {
+          navigate('/auth-error');
+        }, 1500);
+      }
     }
   };
   
-  // Reset toast flag when component remounts
+  // Reset flags when component remounts
   useEffect(() => {
     return () => {
       hasShownToast.current = false;
+      hasRedirected.current = false;
     };
   }, []);
   
