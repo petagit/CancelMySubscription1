@@ -19,30 +19,23 @@ export default function Dashboard() {
   // Determine if we're using a guest ID or clerk authentication
   const isAuthenticated = isSignedIn && clerkUser;
   
-  // Use persistent guest ID for unauthenticated users
-  const [guestId, setGuestId] = useState<string>(() => {
-    // Try to get from localStorage first
-    const storedGuestId = localStorage.getItem("guestId");
-    if (storedGuestId) {
-      console.log("Using existing guest ID in Dashboard:", storedGuestId);
-      return storedGuestId;
-    }
-    
-    // Create a new guestId if none exists
-    const newGuestId = `guest_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
-    console.log("Creating new guest ID in Dashboard:", newGuestId);
-    localStorage.setItem("guestId", newGuestId);
-    return newGuestId;
-  });
+  // Simple guest mode implementation
+  const guestId = localStorage.getItem("guestId");
   
   // Build API query parameters
   const getQueryParams = () => {
     if (isAuthenticated) {
-      console.log("Using authenticated mode for API requests");
       return ""; // Authenticated user doesn't need guestId
     }
-    console.log("Using guest mode for API requests with ID:", guestId);
-    return `?guestId=${encodeURIComponent(guestId)}`; // Guest user needs guestId
+    
+    // Guest user - if no guestId, create one now
+    if (!guestId) {
+      const newGuestId = `guest_${Date.now()}`;
+      localStorage.setItem("guestId", newGuestId);
+      return `?guestId=${encodeURIComponent(newGuestId)}`;
+    }
+    
+    return `?guestId=${encodeURIComponent(guestId)}`;
   };
   
   // Get stats

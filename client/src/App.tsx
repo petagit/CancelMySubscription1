@@ -10,7 +10,7 @@ import Blog from "@/pages/Blog";
 import BlogPost from "@/pages/BlogPost";
 import Layout from "@/components/Layout";
 import { Loader2 } from "lucide-react";
-import DebugEnvironment from "./debug-env";
+import SimpleDebugPanel from "@/components/SimpleDebugPanel";
 import { useState, useEffect } from "react";
 import { 
   SignedIn, 
@@ -22,56 +22,16 @@ import {
 // We no longer need the old AuthProvider
 import { ProtectedRoute } from "./lib/protected-route";
 
-// Enhanced protected route that checks for both Clerk auth and guest mode
+// Simple protected route wrapper
 function EnhancedProtectedRoute({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
-  const [isGuestUser, setIsGuestUser] = useState(false);
-  const [isCheckingGuest, setIsCheckingGuest] = useState(true);
-  const [clerkError, setClerkError] = useState(false);
   const { isLoaded, isSignedIn } = useClerkAuth();
   
-  // Check for guest mode
-  useEffect(() => {
-    try {
-      const hasGuestId = !!localStorage.getItem("guestId");
-      setIsGuestUser(hasGuestId);
-    } catch (e) {
-      console.error("Error checking for guest ID:", e);
-      // If we can't check localStorage, create a guest session anyway
-      setIsGuestUser(true);
-    } finally {
-      setIsCheckingGuest(false);
-    }
-    
-    // Also listen for Clerk errors
-    const handleClerkError = (event: ErrorEvent) => {
-      if (event.error && 
-          (event.error.toString().includes('Clerk') || 
-           event.message?.includes('Clerk'))) {
-        setClerkError(true);
-        // Create a guest ID if Clerk fails and we don't have one
-        if (!localStorage.getItem("guestId")) {
-          try {
-            localStorage.setItem("guestId", "guest_" + Math.random().toString(36).substring(2, 15));
-            setIsGuestUser(true);
-          } catch (e) {
-            console.error("Error setting guest ID:", e);
-          }
-        }
-      }
-    };
-    
-    window.addEventListener("error", handleClerkError);
-    return () => window.removeEventListener("error", handleClerkError);
-  }, []);
-  
-  // If it's a guest user or there's a Clerk error, grant access immediately
-  if (isGuestUser || clerkError) {
-    return <>{children}</>;
-  }
-  
-  // If still checking guest status or Clerk is loading, show loading
-  if (isCheckingGuest || !isLoaded) {
+  // Check for guest ID
+  const hasGuestId = !!localStorage.getItem("guestId");
+
+  // Show loading while Clerk is initializing  
+  if (!isLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-gray-700" />
@@ -79,12 +39,12 @@ function EnhancedProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
   
-  // If logged in, show the protected content
-  if (isSignedIn) {
+  // If user is signed in or has a guest ID, show the content
+  if (isSignedIn || hasGuestId) {
     return <>{children}</>;
   }
   
-  // Otherwise, show auth options
+  // Otherwise, show simple auth options
   return (
     <div className="flex flex-col items-center space-y-6 pt-10">
       <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
@@ -95,7 +55,7 @@ function EnhancedProtectedRoute({ children }: { children: React.ReactNode }) {
         
         <div className="flex flex-col space-y-4">
           <button 
-            onClick={() => navigate("/#/auth")}
+            onClick={() => navigate("/auth")}
             className="bg-black text-white w-full py-2 rounded-md font-medium"
           >
             Sign In
@@ -103,18 +63,11 @@ function EnhancedProtectedRoute({ children }: { children: React.ReactNode }) {
           
           <button 
             onClick={() => {
-              try {
-                // Create a more consistent guest ID format
-                const newGuestId = `guest_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
-                localStorage.setItem("guestId", newGuestId);
-                console.log("Guest mode activated with ID:", newGuestId);
-                setIsGuestUser(true);
-                
-                // Force redirect to dashboard with the guest ID active
-                window.location.href = "/#/dashboard";
-              } catch (e) {
-                console.error("Error setting guest ID:", e);
-              }
+              // Create a simple guest ID
+              const guestId = `guest_${Date.now()}`;
+              localStorage.setItem("guestId", guestId);
+              // Reload the page to apply the guest ID
+              window.location.reload();
             }}
             className="border border-gray-300 text-gray-700 w-full py-2 rounded-md font-medium"
           >
@@ -187,7 +140,7 @@ function App() {
   
   return (
     <QueryClientProvider client={queryClient}>
-      <DebugEnvironment />
+      <SimpleDebugPanel />
       {clerkFailed && (
         <div className="fixed top-0 left-0 right-0 bg-yellow-500 text-black p-2 z-50 text-center">
           Authentication service is currently unavailable. You're using guest mode.

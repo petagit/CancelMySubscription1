@@ -7,44 +7,27 @@ interface ProtectedRouteProps {
   children: ReactNode;
 }
 
-// We allow all users access - both authenticated and guest users
+// Simple protected route that allows either signed in users or users with a guest ID
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { isLoaded, isSignedIn } = useClerkAuth();
-  const [hasGuestId, setHasGuestId] = useState(false);
-  const [isCheckingGuest, setIsCheckingGuest] = useState(true);
-
-  // Check for guest mode and create one if none exists but clerk failed
-  useEffect(() => {
-    const guestId = localStorage.getItem("guestId");
-    
-    if (guestId) {
-      console.log("Using existing guest ID:", guestId);
-      setHasGuestId(true);
-    } else if (!isLoaded || document.querySelector(".cl-userButtonPopoverFooter") === null) {
-      // If Clerk failed to load or we detected an error, create a guest ID
-      console.log("Creating fallback guest ID due to authentication issues");
-      const newGuestId = `guest_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
-      localStorage.setItem("guestId", newGuestId);
-      setHasGuestId(true);
-    }
-    
-    setIsCheckingGuest(false);
-  }, [isLoaded]);
-
-  // Show loading state while checking auth status
-  if (!isLoaded || isCheckingGuest) {
+  
+  // Check if we have a guest ID in localStorage
+  const hasGuestId = !!localStorage.getItem("guestId");
+  
+  // If Clerk is still loading, show a loader
+  if (!isLoaded) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-border" />
       </div>
     );
   }
-
-  // Guest users or authenticated users can access protected routes
-  if (hasGuestId || isSignedIn) {
+  
+  // Allow access if user is signed in OR has a guest ID
+  if (isSignedIn || hasGuestId) {
     return <>{children}</>;
   }
-
-  // Redirect to home page if not a guest and not authenticated
+  
+  // Otherwise, redirect to home page
   return <Navigate to="/" replace />;
 }
