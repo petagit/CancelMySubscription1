@@ -21,6 +21,7 @@ export default function AuthPage({ defaultTab = "sign-in" }: AuthPageProps) {
               path="/sign-in"
               routing="path"
               signUpUrl="/sign-up"
+              fallbackRedirectUrl="/dashboard"
               appearance={{
                 elements: {
                   formButtonPrimary: "bg-black hover:bg-gray-800 text-white",
@@ -33,6 +34,7 @@ export default function AuthPage({ defaultTab = "sign-in" }: AuthPageProps) {
               path="/sign-up"
               routing="path"
               signInUrl="/sign-in"
+              fallbackRedirectUrl="/dashboard"
               appearance={{
                 elements: {
                   formButtonPrimary: "bg-black hover:bg-gray-800 text-white",

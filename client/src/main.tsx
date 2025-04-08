@@ -20,13 +20,14 @@ if (!clerkPubKey) {
   console.error("Missing Clerk publishable key in environment variables");
 }
 
-// Simple Clerk configuration matching the example
+// Updated Clerk configuration using exactly the recommended props
 const clerkConfig = {
   // Basic routing configuration
   signInUrl: "/sign-in",
   signUpUrl: "/sign-up",
-  // This is the correct prop to use based on Clerk warnings
-  fallbackRedirectUrl: "/dashboard"
+  // Using the exact properties mentioned in the Clerk warning
+  fallbackRedirectUrl: "/dashboard", 
+  afterSignOutUrl: "/"
 };
 
 // Render the app with Clerk provider and BrowserRouter 
