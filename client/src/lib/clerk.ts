@@ -91,7 +91,8 @@ export function useAuth() {
 
   return {
     user: apiUser,
-    isLoading: !isLoaded || isLoading, 
+    isLoading: !isLoaded || isLoading,
+    isSignedIn, // Add isSignedIn to the return value
     error,
     logoutMutation,
     // We don't need these but include them to maintain compatibility

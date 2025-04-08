@@ -12,11 +12,7 @@ import AuthError from "@/pages/AuthError";
 import Layout from "@/components/Layout";
 import SimpleDebugPanel from "@/components/SimpleDebugPanel";
 import { useEffect } from "react";
-import { 
-  SignedIn, 
-  SignedOut, 
-  RedirectToSignIn
-} from "@clerk/clerk-react";
+import ProtectedRoute from "./lib/protected-route";
 
 /**
  * Main App component
@@ -47,18 +43,13 @@ function App() {
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
           
-          {/* Protected routes using Clerk's built-in components - exactly like the example */}
+          {/* Protected routes using our custom ProtectedRoute component */}
           <Route 
             path="/dashboard" 
             element={
-              <>
-                <SignedIn>
-                  <Dashboard />
-                </SignedIn>
-                <SignedOut>
-                  <RedirectToSignIn />
-                </SignedOut>
-              </>
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
             } 
           />
           
