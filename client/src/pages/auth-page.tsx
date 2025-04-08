@@ -105,29 +105,7 @@ export default function AuthPage() {
                 </TabsContent>
               </Tabs>
               
-              {/* Divider */}
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white px-2 text-muted-foreground">Or</span>
-                </div>
-              </div>
-              
-              {/* Guest mode option */}
-              <div className="pt-4">
-                <Button 
-                  onClick={handleContinueAsGuest} 
-                  variant="outline"
-                  className="w-full"
-                >
-                  Continue as Guest
-                </Button>
-                <p className="mt-2 text-xs text-center text-muted-foreground">
-                  No account needed. Your data will be stored locally.
-                </p>
-              </div>
+              {/* Guest mode has been disabled */}
             </div>
           </CardContent>
         </Card>

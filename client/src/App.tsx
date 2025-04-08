@@ -23,29 +23,12 @@ import {
 // We no longer need the old AuthProvider
 import { ProtectedRoute } from "./lib/protected-route";
 
-// Protected route with fast guest mode fallback
+// Protected route without guest mode
 function EnhancedProtectedRoute({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const { isLoaded, isSignedIn } = useClerkAuth();
   
-  // State to track guest ID
-  const [guestId, setGuestId] = useState<string | null>(null);
   const [showLoader, setShowLoader] = useState(true);
-  
-  // Initialize guest ID on mount and track changes
-  useEffect(() => {
-    // Get guest ID from localStorage
-    const storedGuestId = createOrGetGuestId();
-    setGuestId(storedGuestId);
-    
-    // Listen for storage changes (if user modifies in another tab)
-    const handleStorageChange = () => {
-      setGuestId(localStorage.getItem("guestId"));
-    };
-    
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
   
   // Only show loading spinner briefly
   useEffect(() => {
@@ -57,8 +40,8 @@ function EnhancedProtectedRoute({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(timeoutId);
   }, []);
 
-  // If user is signed in or has a guest ID, show the content immediately
-  if (isSignedIn || guestId) {
+  // If user is signed in, show the content immediately
+  if (isSignedIn) {
     return <>{children}</>;
   }
   
@@ -71,13 +54,13 @@ function EnhancedProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
   
-  // Otherwise, show auth options
+  // Otherwise, redirect to auth
   return (
     <div className="flex flex-col items-center space-y-6 pt-10">
       <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
         <h2 className="text-2xl font-bold mb-4 text-center">Authentication Required</h2>
         <p className="mb-6 text-gray-600">
-          Please sign in or continue as a guest to access this content.
+          Please sign in to access this content.
         </p>
         
         <div className="flex flex-col space-y-4">
@@ -86,20 +69,6 @@ function EnhancedProtectedRoute({ children }: { children: React.ReactNode }) {
             className="bg-black text-white w-full py-2 rounded-md font-medium"
           >
             Sign In
-          </button>
-          
-          <button 
-            onClick={() => {
-              // Create a simple guest ID
-              const guestId = `guest_${Date.now()}`;
-              localStorage.setItem("guestId", guestId);
-              console.log("Created guest ID:", guestId);
-              // Navigate to dashboard without page reload
-              navigate("/dashboard");
-            }}
-            className="border border-gray-300 text-gray-700 w-full py-2 rounded-md font-medium"
-          >
-            Continue as Guest
           </button>
         </div>
       </div>
@@ -136,31 +105,23 @@ function Router() {
 }
 
 /**
- * Helper function to manage guest ID
+ * Main App component
  */
-function createOrGetGuestId(): string {
-  let guestId = localStorage.getItem('guestId');
-  
-  // If no guest ID exists, create one
-  if (!guestId) {
-    guestId = `guest_${Date.now()}`;
-    localStorage.setItem('guestId', guestId);
-    console.log("Created new guest ID:", guestId);
-  } else {
-    console.log("Using existing guest ID:", guestId);
-  }
-  
-  return guestId;
-}
-
 function App() {
-  // Always ensure a guest ID exists
+  // Clear any existing guest data to disable guest mode
   useEffect(() => {
-    // Create or get guest ID immediately on load
-    createOrGetGuestId();
+    // Remove any guest mode data
+    localStorage.removeItem('guestId');
     
-    // Also add a simple message to show the current guest ID
-    console.log("Current guest ID:", localStorage.getItem('guestId'));
+    // Clear any other subscription data
+    const localStorageKeys = Object.keys(localStorage);
+    localStorageKeys.forEach(key => {
+      if (key.startsWith('guest_') || key.includes('subscription')) {
+        localStorage.removeItem(key);
+      }
+    });
+    
+    console.log("Guest mode disabled - removed guest data");
   }, []);
   
   // Set up a timeout to detect Clerk initialization failures
@@ -172,7 +133,7 @@ function App() {
     // If Clerk doesn't load within 2 seconds, consider it failed
     const timeoutId = setTimeout(() => {
       if (!isLoaded) {
-        console.log("Clerk failed to load in time, activating guest mode");
+        console.log("Clerk failed to load in time");
         setClerkFailed(true);
       }
     }, 2000);
@@ -187,7 +148,7 @@ function App() {
       if (event.error && 
           (event.error.toString().includes('Clerk') || 
            event.message?.includes('Clerk'))) {
-        console.error('Detected Clerk error, activating guest mode fallback');
+        console.error('Detected Clerk error');
         setClerkFailed(true);
       }
     };
@@ -204,8 +165,8 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <SimpleDebugPanel />
       {clerkFailed && (
-        <div className="fixed top-0 left-0 right-0 bg-yellow-500 text-black p-2 z-50 text-center flex items-center justify-center">
-          <span>Authentication service is unavailable. Using guest mode.</span>
+        <div className="fixed top-0 left-0 right-0 bg-red-500 text-white p-2 z-50 text-center flex items-center justify-center">
+          <span>Authentication service is unavailable. Please try again later.</span>
           <button 
             onClick={() => window.location.href = '/'}
             className="ml-4 bg-black text-white px-3 py-1 rounded text-sm"
@@ -213,10 +174,10 @@ function App() {
             Return Home
           </button>
           <button 
-            onClick={() => window.location.href = '/auth-error'}
-            className="ml-2 bg-gray-700 text-white px-3 py-1 rounded text-sm"
+            onClick={() => window.location.reload()}
+            className="ml-2 bg-white text-black px-3 py-1 rounded text-sm"
           >
-            Recovery Options
+            Retry
           </button>
         </div>
       )}

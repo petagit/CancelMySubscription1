@@ -7,52 +7,24 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Loader2, User, LogOut, Info } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Loader2, User, LogOut } from "lucide-react";
+import { useState } from "react";
 import { useClerk, useUser } from "@clerk/clerk-react";
 
 export default function Navbar() {
   const location = useRouterLocation();
   const [isSigningOut, setIsSigningOut] = useState(false);
-  const [isGuestUser, setIsGuestUser] = useState(false);
   
   // Use Clerk to manage authentication
   const { isLoaded, isSignedIn, user } = useUser();
   const { signOut } = useClerk();
-  
-  // Check if user is in guest mode
-  useEffect(() => {
-    try {
-      const guestId = localStorage.getItem("guestId");
-      setIsGuestUser(!!guestId && !isSignedIn);
-    } catch (e) {
-      console.error("Error checking guest mode:", e);
-    }
-  }, [isSignedIn]);
   
   // Handle sign out
   const handleSignOut = async () => {
     try {
       setIsSigningOut(true);
       
-      if (isGuestUser) {
-        // Guest logout - completely reset the guest state
-        localStorage.removeItem("guestId");
-        
-        // Clear any subscription data stored in localStorage
-        const localStorageKeys = Object.keys(localStorage);
-        localStorageKeys.forEach(key => {
-          if (key.startsWith('guest_') || key.includes('subscription')) {
-            localStorage.removeItem(key);
-          }
-        });
-        
-        console.log("Guest user logged out, local storage cleared");
-        
-        // Force a complete page reload to reset all state
-        window.location.href = "/";
-        window.location.reload();
-      } else if (signOut) {
+      if (signOut) {
         // Clerk logout
         await signOut();
         window.location.href = "/";
@@ -66,7 +38,6 @@ export default function Navbar() {
   
   // Get user's initials for avatar
   const getUserInitial = (): string => {
-    if (isGuestUser) return "G";
     if (!user) return "U";
     
     if (user.firstName) {
@@ -82,7 +53,6 @@ export default function Navbar() {
   
   // Get display name for dropdown
   const getUserDisplayName = (): string => {
-    if (isGuestUser) return "Guest User";
     if (!user) return "User";
     
     if (user.fullName) {
@@ -133,15 +103,7 @@ export default function Navbar() {
           </div>
           
           <div className="flex items-center">
-            {/* Guest mode indicator */}
-            {isGuestUser && (
-              <div className="mr-4 flex items-center bg-gray-700 px-3 py-1 rounded-full">
-                <Info className="h-4 w-4 mr-2 text-gray-300" />
-                <span className="text-sm text-gray-300">Guest Mode</span>
-              </div>
-            )}
-            
-            {!isLoaded && !isGuestUser ? (
+            {!isLoaded ? (
               <Loader2 className="h-5 w-5 text-white animate-spin" />
             ) : isSignedIn && user ? (
               <DropdownMenu>
@@ -164,34 +126,6 @@ export default function Navbar() {
                   <DropdownMenuItem className="cursor-pointer">
                     <User className="mr-2 h-4 w-4" />
                     <span>{getUserDisplayName()}</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    className="cursor-pointer text-red-500 focus:text-red-500" 
-                    onClick={handleSignOut}
-                    disabled={isSigningOut}
-                  >
-                    {isSigningOut ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <LogOut className="mr-2 h-4 w-4" />
-                    )}
-                    <span>Log out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : isGuestUser ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full text-white hover:bg-gray-800">
-                    <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-white">
-                      <span className="text-xs font-bold">G</span>
-                    </div>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem className="cursor-pointer">
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Guest User</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     className="cursor-pointer text-red-500 focus:text-red-500" 
