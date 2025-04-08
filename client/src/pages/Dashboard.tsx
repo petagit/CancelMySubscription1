@@ -23,18 +23,26 @@ export default function Dashboard() {
   const [guestId, setGuestId] = useState<string>(() => {
     // Try to get from localStorage first
     const storedGuestId = localStorage.getItem("guestId");
-    if (storedGuestId) return storedGuestId;
+    if (storedGuestId) {
+      console.log("Using existing guest ID in Dashboard:", storedGuestId);
+      return storedGuestId;
+    }
     
     // Create a new guestId if none exists
-    const newGuestId = `guest-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    const newGuestId = `guest_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+    console.log("Creating new guest ID in Dashboard:", newGuestId);
     localStorage.setItem("guestId", newGuestId);
     return newGuestId;
   });
   
   // Build API query parameters
   const getQueryParams = () => {
-    if (isAuthenticated) return ""; // Authenticated user doesn't need guestId
-    return `?guestId=${guestId}`; // Guest user needs guestId
+    if (isAuthenticated) {
+      console.log("Using authenticated mode for API requests");
+      return ""; // Authenticated user doesn't need guestId
+    }
+    console.log("Using guest mode for API requests with ID:", guestId);
+    return `?guestId=${encodeURIComponent(guestId)}`; // Guest user needs guestId
   };
   
   // Get stats

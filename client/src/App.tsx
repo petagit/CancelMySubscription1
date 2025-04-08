@@ -104,8 +104,14 @@ function EnhancedProtectedRoute({ children }: { children: React.ReactNode }) {
           <button 
             onClick={() => {
               try {
-                localStorage.setItem("guestId", "guest_" + Math.random().toString(36).substring(2, 15));
+                // Create a more consistent guest ID format
+                const newGuestId = `guest_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+                localStorage.setItem("guestId", newGuestId);
+                console.log("Guest mode activated with ID:", newGuestId);
                 setIsGuestUser(true);
+                
+                // Force redirect to dashboard with the guest ID active
+                window.location.href = "/#/dashboard";
               } catch (e) {
                 console.error("Error setting guest ID:", e);
               }
