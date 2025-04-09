@@ -106,41 +106,47 @@ export default function Navbar() {
             {!isLoaded ? (
               <Loader2 className="h-5 w-5 text-white animate-spin" />
             ) : isSignedIn && user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full text-white hover:bg-gray-800">
-                    {user.imageUrl ? (
-                      <img 
-                        src={user.imageUrl} 
-                        alt={user.fullName || "User"} 
-                        className="h-8 w-8 rounded-full" 
-                      />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-white">
-                        <span className="text-xs font-bold">{getUserInitial()}</span>
-                      </div>
-                    )}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem className="cursor-pointer">
-                    <User className="mr-2 h-4 w-4" />
-                    <span>{getUserDisplayName()}</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    className="cursor-pointer text-red-500 focus:text-red-500" 
-                    onClick={handleSignOut}
-                    disabled={isSigningOut}
-                  >
-                    {isSigningOut ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <LogOut className="mr-2 h-4 w-4" />
-                    )}
-                    <span>Log out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <div className="flex items-center gap-3">
+                {/* Display user email/name with white text */}
+                <span className="text-white font-medium hidden sm:block">
+                  {getUserDisplayName()}
+                </span>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-8 w-8 rounded-full text-white hover:bg-gray-800">
+                      {user.imageUrl ? (
+                        <img 
+                          src={user.imageUrl} 
+                          alt={user.fullName || "User"} 
+                          className="h-8 w-8 rounded-full" 
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-white">
+                          <span className="text-xs font-bold">{getUserInitial()}</span>
+                        </div>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem className="cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>{getUserDisplayName()}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer text-red-500 focus:text-red-500" 
+                      onClick={handleSignOut}
+                      disabled={isSigningOut}
+                    >
+                      {isSigningOut ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <LogOut className="mr-2 h-4 w-4" />
+                      )}
+                      <span>Log out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             ) : (
               <RouterLink to="/sign-in">
                 <Button className="bg-white text-black hover:bg-gray-200 font-medium text-base" variant="default">LOGIN</Button>
