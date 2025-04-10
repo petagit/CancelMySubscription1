@@ -1,4 +1,9 @@
-import { users, type User, type InsertUser, subscriptions, type Subscription, type InsertSubscription, type Stats } from "@shared/schema";
+import { 
+  users, type User, type InsertUser, 
+  subscriptions, type Subscription, type InsertSubscription, 
+  payments, type Payment, type InsertPayment,
+  type Stats 
+} from "@shared/schema";
 import { db } from "./db";
 import { eq, and, count, sum } from "drizzle-orm";
 import session from "express-session";
@@ -14,7 +19,9 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByClerkId(clerkId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  updateUser(id: number, user: Partial<InsertUser>): Promise<User>; // Added updateUser method
+  updateUser(id: number, user: Partial<InsertUser>): Promise<User>; 
+  getUserSubscriptionCount(userId: number): Promise<number>;
+  getUserByStripeCustomerId(stripeCustomerId: string): Promise<User | undefined>;
   
   // Subscription related methods
   createSubscription(subscription: InsertSubscription): Promise<Subscription>;
@@ -25,6 +32,11 @@ export interface IStorage {
   deleteSubscription(id: number): Promise<boolean>;
   getSubscriptionStats(userId: number): Promise<Stats>;
   getSubscriptionStatsForGuest(guestId: string): Promise<Stats>;
+  
+  // Payment related methods
+  createPayment(payment: InsertPayment): Promise<Payment>;
+  getPaymentsByUserId(userId: number): Promise<Payment[]>;
+  updatePaymentStatus(id: number, status: string): Promise<Payment | undefined>;
   
   // Session store for authentication
   sessionStore: session.Store;
@@ -187,7 +199,16 @@ export class DatabaseStorage implements IStorage {
         eq(subscriptions.isActive, true)
       ));
     
-    return this.calculateStats(userSubscriptions);
+    // Get user details to determine subscription limit and premium status
+    const user = await this.getUser(userId);
+    
+    const stats = this.calculateStats(userSubscriptions);
+    if (user) {
+      stats.subscriptionLimit = user.maxSubscriptions || 10;
+      stats.isPremium = user.hasPaidPlan || false;
+    }
+    
+    return stats;
   }
   
   async getSubscriptionStatsForGuest(guestId: string): Promise<Stats> {
@@ -200,7 +221,55 @@ export class DatabaseStorage implements IStorage {
         eq(subscriptions.isActive, true)
       ));
     
-    return this.calculateStats(guestSubscriptions);
+    // Guest users always have a 5 subscription limit and no premium status
+    const stats = this.calculateStats(guestSubscriptions);
+    stats.subscriptionLimit = 5; // Guest users limited to 5 subscriptions
+    stats.isPremium = false;
+    
+    return stats;
+  }
+  
+  async getUserSubscriptionCount(userId: number): Promise<number> {
+    const subscriptions = await this.getSubscriptionsByUserId(userId);
+    return subscriptions.length;
+  }
+  
+  async getUserByStripeCustomerId(stripeCustomerId: string): Promise<User | undefined> {
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.stripeCustomerId, stripeCustomerId));
+    return user;
+  }
+  
+  async createPayment(payment: InsertPayment): Promise<Payment> {
+    // Convert the amount to string if it's a number to satisfy Drizzle's type expectations
+    const paymentData = {
+      ...payment,
+      amount: String(payment.amount)
+    };
+    
+    const [newPayment] = await db
+      .insert(payments)
+      .values(paymentData)
+      .returning();
+    return newPayment;
+  }
+  
+  async getPaymentsByUserId(userId: number): Promise<Payment[]> {
+    return await db
+      .select()
+      .from(payments)
+      .where(eq(payments.userId, userId));
+  }
+  
+  async updatePaymentStatus(id: number, status: string): Promise<Payment | undefined> {
+    const [updatedPayment] = await db
+      .update(payments)
+      .set({ status })
+      .where(eq(payments.id, id))
+      .returning();
+    return updatedPayment;
   }
   
   private calculateStats(subscriptionsList: Subscription[]): Stats {
@@ -233,7 +302,9 @@ export class DatabaseStorage implements IStorage {
     return {
       monthlySpending,
       yearlySpending,
-      activeSubscriptions: subscriptionsList.length
+      activeSubscriptions: subscriptionsList.length,
+      subscriptionLimit: 10, // Default, will be updated below with actual user data
+      isPremium: false // Default, will be updated below with actual user data
     };
   }
 }

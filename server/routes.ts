@@ -6,6 +6,8 @@ import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { setupAuth } from "./auth";
 import { setupClerkAuth } from "./clerk-auth";
+import { createCheckoutSession, handleStripeWebhook } from "./stripe";
+import Stripe from "stripe";
 
 // For development purposes - allow API access without authentication 
 // Set to true during development to bypass auth checks
@@ -354,6 +356,185 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(200).json({ message: "Subscription deleted successfully" });
     } catch (error) {
       return res.status(500).json({ message: "Failed to delete subscription" });
+    }
+  });
+
+  // Payment-related routes
+  
+  // Get subscription limit and premium status
+  app.get("/api/subscription-status", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user?.id;
+      const clerkUserId = req.clerkUser?.id;
+      const guestId = req.query.guestId as string | undefined;
+      
+      if (!userId && !clerkUserId && !guestId) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      let dbUserId: number | undefined;
+      
+      // Get database user ID if we have a clerk user
+      if (clerkUserId && !userId) {
+        const dbUser = await storage.getUserByClerkId(clerkUserId);
+        if (dbUser) {
+          dbUserId = dbUser.id;
+        }
+      } else {
+        dbUserId = userId;
+      }
+      
+      // Guest users
+      if (guestId && !dbUserId) {
+        // Get guest subscriptions
+        const subscriptions = await storage.getSubscriptionsByGuestId(guestId);
+        
+        return res.status(200).json({
+          subscriptionCount: subscriptions.length,
+          subscriptionLimit: 5,
+          isPremium: false,
+          remainingSubscriptions: Math.max(0, 5 - subscriptions.length)
+        });
+      }
+      
+      // Authenticated users
+      if (dbUserId) {
+        const user = await storage.getUser(dbUserId);
+        const subscriptionCount = await storage.getUserSubscriptionCount(dbUserId);
+        
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+        
+        const maxSubscriptions = user.maxSubscriptions || 10;
+        
+        return res.status(200).json({
+          subscriptionCount,
+          subscriptionLimit: maxSubscriptions,
+          isPremium: user.hasPaidPlan || false,
+          remainingSubscriptions: Math.max(0, maxSubscriptions - subscriptionCount)
+        });
+      }
+      
+      return res.status(400).json({ message: "Unable to determine subscription status" });
+    } catch (error) {
+      console.error("Error getting subscription status:", error);
+      return res.status(500).json({ message: "Failed to get subscription status" });
+    }
+  });
+  
+  // Create checkout session for premium plan
+  app.post("/api/create-checkout-session", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user?.id;
+      const clerkUser = req.clerkUser;
+      
+      if (!userId && !clerkUser) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      let dbUserId: number | undefined;
+      let userEmail: string;
+      let userName: string | undefined;
+      
+      // Get user details based on authentication method
+      if (clerkUser) {
+        // Get or create database user for Clerk user
+        const dbUser = await storage.getUserByClerkId(clerkUser.id);
+        
+        if (dbUser) {
+          dbUserId = dbUser.id;
+        } else {
+          // Create a new user if not exists
+          const email = clerkUser.emailAddresses?.[0]?.emailAddress || 'user@example.com';
+          const username = clerkUser.username || email || `user_${clerkUser.id}`;
+          
+          const newUser = await storage.createUser({
+            username,
+            password: 'clerk-managed',
+            clerkId: clerkUser.id
+          });
+          
+          dbUserId = newUser.id;
+        }
+        
+        userEmail = clerkUser.emailAddresses?.[0]?.emailAddress || 'user@example.com';
+        userName = clerkUser.firstName 
+          ? clerkUser.lastName 
+            ? `${clerkUser.firstName} ${clerkUser.lastName}`
+            : clerkUser.firstName
+          : undefined;
+      } else if (userId) {
+        // Regular session user
+        dbUserId = userId;
+        const user = await storage.getUser(userId);
+        
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+        
+        userEmail = user.username; // Use username as email for regular users
+      } else {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      // Create checkout session with Stripe
+      const session = await createCheckoutSession(
+        dbUserId!,
+        userEmail,
+        userName
+      );
+      
+      return res.status(200).json({ 
+        sessionId: session.id,
+        url: session.url
+      });
+    } catch (error) {
+      console.error("Error creating checkout session:", error);
+      return res.status(500).json({ message: "Failed to create checkout session" });
+    }
+  });
+  
+  // Stripe webhook endpoint
+  app.post("/api/webhook", async (req: Request, res: Response) => {
+    const signature = req.headers['stripe-signature'] as string;
+    
+    if (!signature) {
+      return res.status(400).json({ message: "No Stripe signature found" });
+    }
+    
+    try {
+      // Create a Stripe webhook event
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
+      let event;
+      
+      try {
+        // Verify the event with the Stripe-provided signing secret
+        const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+        
+        if (endpointSecret) {
+          event = stripe.webhooks.constructEvent(
+            req.body,
+            signature,
+            endpointSecret
+          );
+        } else {
+          // Without a webhook secret, just use the raw event
+          event = JSON.parse(req.body);
+        }
+      } catch (err: any) {
+        console.error('Webhook signature verification failed:', err);
+        return res.status(400).send(`Webhook Error: ${err.message || 'Unknown error'}`);
+      }
+      
+      // Handle the event
+      await handleStripeWebhook(event);
+      
+      // Acknowledge receipt of the event
+      res.status(200).json({ received: true });
+    } catch (error) {
+      console.error('Error handling webhook:', error);
+      return res.status(500).json({ message: "Failed to process webhook" });
     }
   });
 

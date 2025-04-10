@@ -7,12 +7,20 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   clerkId: text("clerk_id").unique(), // Add Clerk ID for integration
+  
+  // Payment related fields
+  stripeCustomerId: text("stripe_customer_id").unique(),
+  hasPaidPlan: boolean("has_paid_plan").default(false).notNull(),
+  maxSubscriptions: integer("max_subscriptions").default(10).notNull(), // Default 10 for free plan
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
   clerkId: true,
+  stripeCustomerId: true,
+  hasPaidPlan: true,
+  maxSubscriptions: true,
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -67,11 +75,46 @@ export const insertSubscriptionSchema = createInsertSchema(subscriptions)
 export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
 export type Subscription = typeof subscriptions.$inferSelect;
 
+// Create a new payments table for tracking Stripe payments
+export const payments = pgTable("payments", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSessionId: text("stripe_session_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
+  status: text("status").notNull().default("pending"), // pending, succeeded, failed
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  planType: text("plan_type").notNull().default("premium"), // premium, etc.
+});
+
+// Payment insert schema
+export const insertPaymentSchema = createInsertSchema(payments)
+  .pick({
+    userId: true,
+    stripeCustomerId: true,
+    stripeSessionId: true,
+    stripeSubscriptionId: true,
+    amount: true,
+    status: true,
+    planType: true,
+  })
+  .extend({
+    amount: z.string().or(z.number()).transform(val => 
+      typeof val === 'string' ? parseFloat(val) : val
+    ),
+  });
+
+export type InsertPayment = z.infer<typeof insertPaymentSchema>;
+export type Payment = typeof payments.$inferSelect;
+
 // Stats schema for returning dashboard statistics
 export const statsSchema = z.object({
   monthlySpending: z.number(),
   yearlySpending: z.number(),
   activeSubscriptions: z.number(),
+  subscriptionLimit: z.number(),
+  isPremium: z.boolean(),
 });
 
 export type Stats = z.infer<typeof statsSchema>;

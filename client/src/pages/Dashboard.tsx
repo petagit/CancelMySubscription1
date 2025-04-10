@@ -4,6 +4,7 @@ import StatsCard from "@/components/StatsCard";
 import SubscriptionsList from "@/components/SubscriptionsList";
 import AddSubscriptionDialog from "@/components/AddSubscriptionDialog";
 import DevModeToggle from "@/components/DevModeToggle";
+import SubscriptionLimit from "@/components/SubscriptionLimit";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
@@ -411,6 +412,9 @@ export default function Dashboard() {
           value={isLoadingStats ? "0" : statsData.activeSubscriptions.toString()} 
         />
       </div>
+      
+      {/* Subscription Limit */}
+      <SubscriptionLimit guestId={guestId || undefined} />
       
       {/* Subscriptions */}
       <div className="mb-8">

@@ -38,17 +38,36 @@ export default function Navbar() {
   
   // Get user's initials for avatar
   const getUserInitial = (): string => {
-    if (!user) return "U";
+    if (!user) return "G"; // G for Guest
     
     if (user.firstName) {
       return user.firstName[0].toUpperCase();
+    }
+    
+    if (user.fullName && user.fullName.length > 0) {
+      return user.fullName[0].toUpperCase();
     }
     
     if (user.emailAddresses && user.emailAddresses.length > 0) {
       return user.emailAddresses[0].emailAddress[0].toUpperCase();
     }
     
-    return "U";
+    return user.username?.[0]?.toUpperCase() || "U";
+  };
+  
+  // Get background color for avatar based on user's initial
+  const getAvatarBgColor = (): string => {
+    const initial = getUserInitial();
+    // Generate consistent color based on initial
+    const colors = [
+      "bg-blue-600", "bg-green-600", "bg-purple-600", 
+      "bg-red-600", "bg-yellow-600", "bg-pink-600",
+      "bg-indigo-600", "bg-teal-600", "bg-orange-600"
+    ];
+    
+    // Simple hash function to get consistent color for same initial
+    const index = initial.charCodeAt(0) % colors.length;
+    return colors[index];
   };
   
   // Get display name for dropdown
@@ -121,7 +140,7 @@ export default function Navbar() {
                           className="h-8 w-8 rounded-full" 
                         />
                       ) : (
-                        <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-white">
+                        <div className={`w-8 h-8 rounded-full ${getAvatarBgColor()} flex items-center justify-center text-white shadow-md`}>
                           <span className="text-xs font-bold">{getUserInitial()}</span>
                         </div>
                       )}
