@@ -60,7 +60,7 @@ export default function Home() {
       <div className="mb-16 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-8 border border-indigo-100 shadow-sm">
         <h2 className="text-2xl font-bold text-center mb-4">Subscription Plans</h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {/* Free plan */}
           <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
             <h3 className="text-lg font-bold mb-2">Free Plan</h3>
@@ -78,6 +78,10 @@ export default function Home() {
                 <span className="text-green-500 mr-2">✓</span>
                 <span>CSV export</span>
               </li>
+              <li className="flex items-start">
+                <span className="text-green-500 mr-2">✓</span>
+                <span>Email reminders</span>
+              </li>
             </ul>
             <Button
               onClick={handleGetStarted}
@@ -89,7 +93,7 @@ export default function Home() {
           </div>
           
           {/* Premium plan (highlighted) */}
-          <div className="bg-gradient-to-b from-purple-600 to-indigo-600 rounded-lg p-6 border border-indigo-500 shadow-md transform scale-105 -mt-2">
+          <div className="bg-gradient-to-b from-purple-600 to-indigo-600 rounded-lg p-6 border border-indigo-500 shadow-md transform md:scale-110">
             <div className="bg-yellow-400 text-xs font-bold px-3 py-1 rounded-full text-indigo-800 inline-block mb-2">BEST VALUE</div>
             <h3 className="text-lg font-bold mb-2 text-white">Premium Plan</h3>
             <p className="text-3xl font-bold mb-4 text-white">$10<span className="text-sm font-normal text-indigo-200">/month</span></p>
@@ -110,39 +114,16 @@ export default function Home() {
                 <span className="text-yellow-300 mr-2">✓</span>
                 <span>CSV import/export</span>
               </li>
+              <li className="flex items-start">
+                <span className="text-yellow-300 mr-2">✓</span>
+                <span>Cancel assistance</span>
+              </li>
             </ul>
             <Button
               onClick={() => navigate("/sign-up?plan=premium")}
               className="w-full bg-white text-indigo-600 hover:bg-indigo-50 font-bold"
             >
               Get Premium
-            </Button>
-          </div>
-          
-          {/* Guest plan */}
-          <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
-            <h3 className="text-lg font-bold mb-2">Guest Account</h3>
-            <p className="text-3xl font-bold mb-4">$0<span className="text-sm font-normal text-gray-500">/month</span></p>
-            <ul className="mb-6 space-y-2">
-              <li className="flex items-start">
-                <span className="text-green-500 mr-2">✓</span>
-                <span>Up to 5 subscriptions</span>
-              </li>
-              <li className="flex items-start">
-                <span className="text-green-500 mr-2">✓</span>
-                <span>Basic features</span>
-              </li>
-              <li className="flex items-start">
-                <span className="text-green-500 mr-2">✓</span>
-                <span>No account required</span>
-              </li>
-            </ul>
-            <Button
-              onClick={() => navigate("/dashboard")}
-              variant="outline"
-              className="w-full border-black text-black hover:bg-gray-100"
-            >
-              Try Now
             </Button>
           </div>
         </div>
