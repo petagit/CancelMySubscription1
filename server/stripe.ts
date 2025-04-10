@@ -2,11 +2,45 @@ import Stripe from "stripe";
 import { storage } from "./storage";
 
 // Initialize Stripe with the secret key
-if (!process.env.STRIPE_SECRET_KEY && process.env.NODE_ENV === 'production') {
-  throw new Error('STRIPE_SECRET_KEY must be set in production environment');
+let isStripeAvailable = true;
+let stripeInstance: Stripe | null = null;
+
+try {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    console.warn('STRIPE_SECRET_KEY not found. Payment features will be disabled.');
+    isStripeAvailable = false;
+  } else {
+    stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
+    console.log('Stripe initialized successfully.');
+  }
+} catch (error) {
+  console.error('Failed to initialize Stripe:', error);
+  isStripeAvailable = false;
 }
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_dummy_key_for_development');
+// Create a dummy Stripe instance if needed
+const stripe = stripeInstance || {
+  customers: {
+    create: async () => {
+      console.warn('Stripe payments disabled: Missing API key');
+      return { id: 'dummy_customer_id' };
+    }
+  },
+  checkout: {
+    sessions: {
+      create: async () => {
+        console.warn('Stripe payments disabled: Missing API key');
+        return { 
+          id: 'dummy_session_id',
+          url: '/dashboard?stripe=disabled'
+        };
+      }
+    }
+  }
+} as unknown as Stripe;
+
+// Helper to check if Stripe is available
+export const isStripeEnabled = () => isStripeAvailable;
 
 // Available subscription plans
 export const SUBSCRIPTION_PLANS = {

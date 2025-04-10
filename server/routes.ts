@@ -6,8 +6,8 @@ import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { setupAuth } from "./auth";
 import { setupClerkAuth } from "./clerk-auth";
-import { createCheckoutSession, handleStripeWebhook } from "./stripe";
 import Stripe from "stripe";
+// Note: We're importing Stripe functions dynamically to handle missing API keys gracefully
 
 // For development purposes - allow API access without authentication 
 // Set to true during development to bypass auth checks
@@ -426,6 +426,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create checkout session for premium plan
   app.post("/api/create-checkout-session", isAuthenticated, async (req: Request, res: Response) => {
     try {
+      // Import and check if Stripe is available
+      const { isStripeEnabled } = await import('./stripe');
+      
+      if (!isStripeEnabled()) {
+        return res.status(503).json({ 
+          message: "Payment services are temporarily unavailable", 
+          stripeDisabled: true,
+          redirectTo: '/dashboard?payment=unavailable'
+        });
+      }
+      
       const userId = req.user?.id;
       const clerkUser = req.clerkUser;
       
@@ -479,6 +490,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Create checkout session with Stripe
+      const { createCheckoutSession } = await import('./stripe');
       const session = await createCheckoutSession(
         dbUserId!,
         userEmail,
@@ -491,19 +503,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Error creating checkout session:", error);
-      return res.status(500).json({ message: "Failed to create checkout session" });
+      return res.status(500).json({ 
+        message: "Failed to create checkout session",
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
   
   // Stripe webhook endpoint
   app.post("/api/webhook", async (req: Request, res: Response) => {
-    const signature = req.headers['stripe-signature'] as string;
-    
-    if (!signature) {
-      return res.status(400).json({ message: "No Stripe signature found" });
-    }
-    
     try {
+      // Import and check if Stripe is available
+      const { isStripeEnabled } = await import('./stripe');
+      
+      if (!isStripeEnabled()) {
+        return res.status(503).json({ 
+          message: "Payment services are temporarily unavailable"
+        });
+      }
+      
+      const signature = req.headers['stripe-signature'] as string;
+      
+      if (!signature) {
+        return res.status(400).json({ message: "No Stripe signature found" });
+      }
+      
       // Create a Stripe webhook event
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
       let event;
@@ -528,6 +552,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Handle the event
+      const { handleStripeWebhook } = await import('./stripe');
       await handleStripeWebhook(event);
       
       // Acknowledge receipt of the event
