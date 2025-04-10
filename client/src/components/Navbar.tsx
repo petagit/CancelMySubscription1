@@ -171,8 +171,8 @@ export default function Navbar() {
                           className="h-8 w-8 rounded-full" 
                         />
                       ) : (
-                        <div className={`w-8 h-8 rounded-full ${getAvatarBgColor()} flex items-center justify-center text-white shadow-md`}>
-                          <span className="text-xs font-bold">{getUserInitial()}</span>
+                        <div className={`w-8 h-8 rounded-full ${getAvatarBgColor()} flex items-center justify-center text-white shadow-md ring-2 ring-white/10`}>
+                          <span className="text-sm font-bold tracking-wider">{getUserInitial()}</span>
                         </div>
                       )}
                     </Button>
