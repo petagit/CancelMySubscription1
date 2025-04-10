@@ -478,11 +478,13 @@ export default function Dashboard() {
         onSubmit={handleAddSubscription}
       />
       
-      {/* Dev Mode Toggle Button */}
-      <DevModeToggle onDevModeChange={handleDevModeChange} />
+      {/* Dev Mode Toggle Button - Hidden in production */}
+      {process.env.NODE_ENV === 'development' && (
+        <DevModeToggle onDevModeChange={handleDevModeChange} />
+      )}
       
-      {/* Display dev mode status indicator */}
-      {isDevMode && (
+      {/* Display dev mode status indicator - Hidden in production */}
+      {process.env.NODE_ENV === 'development' && isDevMode && (
         <div className="fixed top-4 right-4 bg-red-600 text-white px-3 py-1 rounded-md text-sm font-bold">
           DEV MODE: {guestId ? `${guestId}@guest.com` : "No Guest ID"}
         </div>
