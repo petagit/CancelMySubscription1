@@ -10,7 +10,6 @@ import Blog from "@/pages/Blog";
 import BlogPost from "@/pages/BlogPost";
 import AuthError from "@/pages/AuthError";
 import Layout from "@/components/Layout";
-import SimpleDebugPanel from "@/components/SimpleDebugPanel";
 import { useEffect } from "react";
 import ProtectedRoute from "./lib/protected-route";
 
@@ -53,8 +52,6 @@ function App() {
   
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Debug panel only shown in development mode */}
-      {import.meta.env.DEV && <SimpleDebugPanel />}
       <Routes>
         <Route element={<Layout />}>
           {/* Public routes */}
