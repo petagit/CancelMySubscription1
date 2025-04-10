@@ -25,19 +25,21 @@ function isAuthenticated(req: Request, res: Response, next: NextFunction) {
   console.log('Dev mode enabled:', devMode);
   
   // Guest mode - if there's a guestId, allow access
-  // In dev mode, we'll always go through with the request if there's a guestId
   if (req.query.guestId) {
-    if (devMode) {
-      console.log("ALLOWING REQUEST: Dev mode enabled with guest ID:", req.query.guestId);
-    } else {
-      console.log("ALLOWING REQUEST: Guest mode with ID:", req.query.guestId);
-    }
+    console.log("ALLOWING REQUEST: Guest mode with ID:", req.query.guestId);
     return next();
   }
   
-  // Authenticated users
-  const isNormalAuth = req.isAuthenticated();
+  // User authenticated via Clerk middleware (which sets req.user automatically)
+  if (req.user) {
+    console.log("ALLOWING REQUEST: User authenticated via middleware, ID:", req.user.id);
+    return next();
+  }
+  
+  // Authenticated users via session (older auth method)
+  const isNormalAuth = req.isAuthenticated && req.isAuthenticated();
   const hasClerkUser = !!req.clerkUser;
+  
   console.log('Authentication status:', { 
     isNormalAuth, 
     hasClerkUser,
@@ -46,20 +48,25 @@ function isAuthenticated(req: Request, res: Response, next: NextFunction) {
   });
   
   if (isNormalAuth || hasClerkUser) {
-    console.log("ALLOWING REQUEST: User is authenticated via", isNormalAuth ? "session" : "Clerk");
+    console.log("ALLOWING REQUEST: User is authenticated via session or Clerk directly");
     return next();
   }
   
-  // Testing bypass - don't use a fixed ID that might not exist
-  if (BYPASS_AUTH) {
-    console.log("ALLOWING REQUEST: DEV BYPASS mode without attaching test user");
-    // Don't attach a user, let the endpoint handle dev mode
+  // Dev mode bypass
+  if (devMode) {
+    console.log("ALLOWING REQUEST: Dev mode enabled - bypassing authentication");
+    return next();
+  }
+  
+  // Testing bypass - in development only
+  if (BYPASS_AUTH && process.env.NODE_ENV !== 'production') {
+    console.log("ALLOWING REQUEST: DEV BYPASS mode enabled");
     return next();
   }
   
   // Not authenticated
   console.log("AUTH FAILED: No valid authentication method found");
-  res.status(401).json({ message: "Not authenticated" });
+  res.status(401).json({ message: "Authentication required" });
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {

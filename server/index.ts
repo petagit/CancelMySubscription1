@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { clerkMiddleware } from "./clerk-middleware";
 
 // Use the appropriate Clerk key based on environment
 // NOTE: We're commenting out this override to ensure we use the correct key
@@ -12,6 +13,9 @@ console.log("Using Clerk environment:", process.env.CLERK_SECRET_KEY?.startsWith
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Apply Clerk middleware for API routes
+app.use('/api', clerkMiddleware);
 
 app.use((req, res, next) => {
   const start = Date.now();
