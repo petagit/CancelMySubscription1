@@ -80,11 +80,13 @@ export default function Home() {
         </Button>
       </div>
       
-      {/* Dev Mode Toggle */}
-      <DevModeToggle onDevModeChange={setIsDevMode} />
+      {/* Dev Mode Toggle - Hidden in production */}
+      {import.meta.env.DEV && (
+        <DevModeToggle onDevModeChange={setIsDevMode} />
+      )}
       
-      {/* Dev Mode Indicator */}
-      {isDevMode && (
+      {/* Dev Mode Indicator - Hidden in production */}
+      {import.meta.env.DEV && isDevMode && (
         <div className="fixed top-4 right-4 bg-red-600 text-white px-3 py-1 rounded-md text-sm font-bold">
           DEV MODE: {localStorage.getItem('guestId') ? `${localStorage.getItem('guestId')}@guest.com` : 'No Guest ID'}
         </div>

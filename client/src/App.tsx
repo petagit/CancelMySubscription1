@@ -54,7 +54,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       {/* Debug panel only shown in development mode */}
-      {process.env.NODE_ENV === 'development' && <SimpleDebugPanel />}
+      {import.meta.env.DEV && <SimpleDebugPanel />}
       <Routes>
         <Route element={<Layout />}>
           {/* Public routes */}
