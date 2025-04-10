@@ -29,13 +29,30 @@ export default function SubscriptionLimit({ guestId }: SubscriptionLimitProps) {
       try {
         // Always ensure we have a URL parameter, either from auth or guestId
         let url = "/api/subscription-status";
+        
+        // Check for dev mode
+        const isDevMode = localStorage.getItem("devMode") === "true";
+        
         if (guestId) {
           url += `?guestId=${guestId}`;
+          // Add dev mode param if needed
+          if (isDevMode) {
+            url += `&devMode=true`;
+          }
         } else if (!isSignedIn) {
           // For users who aren't signed in and don't have a guestId, create one
           const newGuestId = `guest_${Date.now()}`;
           localStorage.setItem("guestId", newGuestId);
           url += `?guestId=${newGuestId}`;
+          // Add dev mode param if needed
+          if (isDevMode) {
+            url += `&devMode=true`;
+          }
+        } else {
+          // For signed in users, just add dev mode if needed
+          if (isDevMode) {
+            url += `?devMode=true`;
+          }
         }
         
         console.log('Fetching subscription status from:', url);

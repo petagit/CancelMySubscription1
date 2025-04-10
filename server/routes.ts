@@ -364,28 +364,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get subscription limit and premium status
   app.get("/api/subscription-status", isAuthenticated, async (req: Request, res: Response) => {
     try {
+      console.log("Subscription status request:", {
+        userId: req.user?.id,
+        clerkUserId: req.clerkUser?.id,
+        guestId: req.query.guestId,
+        devMode: req.query.devMode === 'true'
+      });
+      
       const userId = req.user?.id;
       const clerkUserId = req.clerkUser?.id;
       const guestId = req.query.guestId as string | undefined;
+      const devMode = req.query.devMode === 'true';
       
-      if (!userId && !clerkUserId && !guestId) {
-        return res.status(401).json({ message: "Authentication required" });
-      }
-      
-      let dbUserId: number | undefined;
-      
-      // Get database user ID if we have a clerk user
-      if (clerkUserId && !userId) {
-        const dbUser = await storage.getUserByClerkId(clerkUserId);
-        if (dbUser) {
-          dbUserId = dbUser.id;
-        }
-      } else {
-        dbUserId = userId;
-      }
-      
-      // Guest users
-      if (guestId && !dbUserId) {
+      // Check for guestId first - this is our simplest path
+      if (guestId) {
+        console.log("Processing request as guest user with ID:", guestId);
         // Get guest subscriptions
         const subscriptions = await storage.getSubscriptionsByGuestId(guestId);
         
@@ -397,12 +390,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Authenticated users
+      // Check for authenticated user
+      let dbUserId: number | undefined;
+      
+      // Get database user ID if we have a clerk user
+      if (clerkUserId) {
+        console.log("Looking up user by Clerk ID:", clerkUserId);
+        const dbUser = await storage.getUserByClerkId(clerkUserId);
+        if (dbUser) {
+          dbUserId = dbUser.id;
+          console.log("Found DB user:", dbUser.id);
+        } else {
+          console.log("No DB user found for Clerk ID:", clerkUserId);
+        }
+      } else if (userId) {
+        dbUserId = userId;
+        console.log("Using session user ID:", userId);
+      }
+      
+      // If we have a database user ID, use it
       if (dbUserId) {
         const user = await storage.getUser(dbUserId);
         const subscriptionCount = await storage.getUserSubscriptionCount(dbUserId);
         
         if (!user) {
+          console.log("User not found with ID:", dbUserId);
           return res.status(404).json({ message: "User not found" });
         }
         
@@ -416,10 +428,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      return res.status(400).json({ message: "Unable to determine subscription status" });
+      // If we're in development mode, return a default response for testing
+      if (devMode) {
+        console.log("Dev mode enabled - returning default subscription status");
+        return res.status(200).json({
+          subscriptionCount: 3,
+          subscriptionLimit: 10,
+          isPremium: false,
+          remainingSubscriptions: 7
+        });
+      }
+      
+      // As a last resort, return a generic guest response
+      console.log("No auth method detected, returning generic guest response");
+      return res.status(200).json({
+        subscriptionCount: 0,
+        subscriptionLimit: 5,
+        isPremium: false,
+        remainingSubscriptions: 5
+      });
     } catch (error) {
       console.error("Error getting subscription status:", error);
-      return res.status(500).json({ message: "Failed to get subscription status" });
+      return res.status(500).json({ message: "Failed to get subscription status", error: String(error) });
     }
   });
   
