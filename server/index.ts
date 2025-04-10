@@ -14,7 +14,8 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Apply Clerk middleware for API routes
+// Apply Clerk middleware with debug enabled for API routes
+const authMiddlewareConfig = { debug: true };
 app.use('/api', clerkMiddleware);
 
 app.use((req, res, next) => {

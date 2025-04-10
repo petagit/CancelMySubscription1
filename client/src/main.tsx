@@ -37,6 +37,7 @@ createRoot(document.getElementById("root")!).render(
     <ClerkProvider 
       publishableKey={clerkPubKey || ""}
       {...clerkConfig}
+      debug={true}
     >
       <App />
     </ClerkProvider>
