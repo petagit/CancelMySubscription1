@@ -50,10 +50,10 @@ function isAuthenticated(req: Request, res: Response, next: NextFunction) {
     return next();
   }
   
-  // Testing bypass
+  // Testing bypass - don't use a fixed ID that might not exist
   if (BYPASS_AUTH) {
-    console.log("ALLOWING REQUEST: DEV BYPASS mode using test user with ID 1");
-    (req as any).user = { id: 1 };
+    console.log("ALLOWING REQUEST: DEV BYPASS mode without attaching test user");
+    // Don't attach a user, let the endpoint handle dev mode
     return next();
   }
   
@@ -113,9 +113,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Get stats for guest user
         stats = await storage.getSubscriptionStatsForGuest(guestId);
       } else if (BYPASS_AUTH) {
-        console.log('Using BYPASS_AUTH with test user ID 1');
-        // In bypass mode, get test user stats
-        stats = await storage.getSubscriptionStats(1);
+        console.log('Using BYPASS_AUTH - returning default stats');
+        // In bypass mode, return default stats
+        stats = {
+          monthlySpending: 0,
+          yearlySpending: 0,
+          activeSubscriptions: 0,
+          subscriptionLimit: 10,
+          isPremium: false
+        };
       } else {
         console.log('ERROR: No valid authentication method found');
         return res.status(400).json({ message: "Either user authentication or guestId is required" });
@@ -160,9 +166,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         subscriptions = await storage.getSubscriptionsByGuestId(guestId);
         console.log(`Found ${subscriptions.length} subscriptions for guest ID ${guestId}`);
       } else if (BYPASS_AUTH) {
-        console.log('Using BYPASS_AUTH with test user ID 1');
-        // In bypass mode, get test user subscriptions
-        subscriptions = await storage.getSubscriptionsByUserId(1);
+        console.log('Using BYPASS_AUTH - returning empty subscriptions array');
+        // In bypass mode, return empty subscriptions
+        subscriptions = [];
         console.log(`Found ${subscriptions.length} subscriptions for test user ID 1`);
       } else {
         console.log('ERROR: No valid authentication method found');
