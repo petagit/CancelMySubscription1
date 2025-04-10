@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import StatsCard from "@/components/StatsCard";
 import SubscriptionsList from "@/components/SubscriptionsList";
 import AddSubscriptionDialog from "@/components/AddSubscriptionDialog";
-import DevModeToggle from "@/components/DevModeToggle";
+
 import SubscriptionLimit from "@/components/SubscriptionLimit";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -478,17 +478,7 @@ export default function Dashboard() {
         onSubmit={handleAddSubscription}
       />
       
-      {/* Dev Mode Toggle Button - Hidden in production */}
-      {import.meta.env.DEV && (
-        <DevModeToggle onDevModeChange={handleDevModeChange} />
-      )}
-      
-      {/* Display dev mode status indicator - Hidden in production */}
-      {import.meta.env.DEV && isDevMode && (
-        <div className="fixed top-4 right-4 bg-red-600 text-white px-3 py-1 rounded-md text-sm font-bold">
-          DEV MODE: {guestId ? `${guestId}@guest.com` : "No Guest ID"}
-        </div>
-      )}
+
     </div>
   );
 }
