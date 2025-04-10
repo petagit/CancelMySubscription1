@@ -31,8 +31,8 @@ function isAuthenticated(req: Request, res: Response, next: NextFunction) {
   }
   
   // User authenticated via Clerk middleware (which sets req.user automatically)
-  if (req.user) {
-    console.log("ALLOWING REQUEST: User authenticated via middleware, ID:", req.user.id);
+  if ((req as any).user) {
+    console.log("ALLOWING REQUEST: User authenticated via middleware, ID:", (req as any).user.id);
     return next();
   }
   
@@ -44,7 +44,7 @@ function isAuthenticated(req: Request, res: Response, next: NextFunction) {
     isNormalAuth, 
     hasClerkUser,
     clerkUserId: req.clerkUser?.id,
-    sessionUserId: req.user?.id
+    sessionUserId: (req as any).user?.id
   });
   
   if (isNormalAuth || hasClerkUser) {

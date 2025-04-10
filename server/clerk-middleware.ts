@@ -124,7 +124,8 @@ export async function clerkMiddleware(req: Request, res: Response, next: NextFun
       
       // Also attach database user ID if we found/created one
       if (dbUser) {
-        req.user = { id: dbUser.id } as any;
+        // Cast to any to avoid type conflicts with Express.Request.user
+        (req as any).user = { id: dbUser.id };
         console.log('Attached database user ID to request:', dbUser.id);
       }
       
