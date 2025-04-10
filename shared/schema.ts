@@ -31,7 +31,8 @@ export const subscriptionCategories = [
   "Entertainment",
   "Productivity",
   "Utilities",
-  "Health & Fitness",
+  "Health & Fitness", 
+  "Shopping",
   "Other"
 ] as const;
 
