@@ -60,6 +60,10 @@ export async function clerkMiddleware(req: Request, res: Response, next: NextFun
     }
     
     try {
+      console.log('HTTP Origin:', req.headers.origin);
+      console.log('HTTP Referer:', req.headers.referer);
+      console.log('Clerk verification attempt with URL:', req.url);
+      
       // Verify the session with Clerk
       const sessionClaims = await clerkClient.verifyToken(sessionToken);
       
@@ -133,6 +137,20 @@ export async function clerkMiddleware(req: Request, res: Response, next: NextFun
       next();
     } catch (error) {
       console.error('Error during Clerk token verification:', error);
+      
+      // Check if the error is related to the origin header
+      const errorMessage = String(error);
+      if (errorMessage.includes('origin_invalid') || errorMessage.includes('Origin header')) {
+        console.error('CLERK ORIGIN ERROR DETAILS:');
+        console.error('  Current origin:', req.headers.origin);
+        console.error('  Host:', req.headers.host);
+        console.error('  Referer:', req.headers.referer);
+        console.error('  Protocol:', req.protocol);
+        console.error('  URL:', req.url);
+        console.error('  Full URL:', `${req.protocol}://${req.headers.host}${req.url}`);
+        console.error('To fix this issue, add your domain to the allowlist in your Clerk dashboard');
+      }
+      
       // Continue without authenticated user
       next();
     }

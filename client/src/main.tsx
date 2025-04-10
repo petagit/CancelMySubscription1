@@ -27,7 +27,19 @@ const clerkConfig = {
   signUpUrl: "/sign-up",
   // Using the exact properties mentioned in the Clerk warning
   fallbackRedirectUrl: "/dashboard", 
-  afterSignOutUrl: "/"
+  afterSignOutUrl: "/",
+  // Fix for the "Invalid HTTP Origin header" error in development
+  localization: {
+    socialButtonsBlockButton: "Continue with {{provider}}"
+  },
+  // Allow Replit domains
+  developerData: {
+    allowedRedirectOrigins: [
+      /^https:\/\/.*\.replit\.dev$/,
+      /^https:\/\/.*\.repl\.co$/,
+      window.location.origin
+    ]
+  }
 };
 
 // Render the app with Clerk provider and BrowserRouter 
@@ -37,7 +49,6 @@ createRoot(document.getElementById("root")!).render(
     <ClerkProvider 
       publishableKey={clerkPubKey || ""}
       {...clerkConfig}
-      debug={true}
     >
       <App />
     </ClerkProvider>
