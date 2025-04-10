@@ -2,7 +2,11 @@ import Stripe from "stripe";
 import { storage } from "./storage";
 
 // Initialize Stripe with the secret key
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
+if (!process.env.STRIPE_SECRET_KEY && process.env.NODE_ENV === 'production') {
+  throw new Error('STRIPE_SECRET_KEY must be set in production environment');
+}
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_dummy_key_for_development');
 
 // Available subscription plans
 export const SUBSCRIPTION_PLANS = {
