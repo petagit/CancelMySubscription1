@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { CreditCard, AlertCircle, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import StripeCheckout from "./StripeCheckout";
 
 interface SubscriptionLimitProps {
   guestId?: string;
@@ -20,7 +21,7 @@ export default function SubscriptionLimit({ guestId }: SubscriptionLimitProps) {
   const { isSignedIn, userId } = useAuth();
   const [status, setStatus] = useState<SubscriptionStatus | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [checkoutUrl, setCheckoutUrl] = useState("");
+  const [showStripeCheckout, setShowStripeCheckout] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -42,7 +43,7 @@ export default function SubscriptionLimit({ guestId }: SubscriptionLimitProps) {
     fetchSubscriptionStatus();
   }, [isSignedIn, userId, guestId]);
 
-  const handleUpgrade = async () => {
+  const handleUpgrade = () => {
     if (!isSignedIn) {
       toast({
         title: "Login Required",
@@ -51,38 +52,19 @@ export default function SubscriptionLimit({ guestId }: SubscriptionLimitProps) {
       });
       return;
     }
-
-    setIsLoading(true);
     
-    try {
-      const response = await fetch("/api/create-checkout-session", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        // Redirect to Stripe checkout
-        window.location.href = data.url;
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to create checkout session",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      console.error("Error creating checkout session:", error);
-      toast({
-        title: "Error",
-        description: "Failed to create checkout session",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // Show the Stripe checkout component
+    setShowStripeCheckout(true);
+  };
+  
+  const handleCheckoutSuccess = () => {
+    setShowStripeCheckout(false);
+    // Refresh subscription status
+    window.location.reload();
+  };
+  
+  const handleCheckoutCancel = () => {
+    setShowStripeCheckout(false);
   };
 
   if (!status) return null;
@@ -200,6 +182,13 @@ export default function SubscriptionLimit({ guestId }: SubscriptionLimitProps) {
           </p>
         </div>
       )}
+      
+      {/* Stripe Checkout Modal */}
+      <StripeCheckout 
+        isOpen={showStripeCheckout}
+        onSuccess={handleCheckoutSuccess}
+        onCancel={handleCheckoutCancel}
+      />
     </div>
   );
 }
