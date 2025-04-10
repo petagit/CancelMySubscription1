@@ -31,8 +31,16 @@ export default function SubscriptionsList({
 
   if (isError) {
     return (
-      <div className="bg-error text-errorText p-4 rounded-lg mb-6">
-        Error: Failed to fetch subscriptions (500)
+      <div className="bg-red-50 text-red-800 p-6 rounded-lg mb-6 border border-red-200">
+        <h3 className="text-lg font-medium mb-2">Error fetching subscriptions</h3>
+        <p className="mb-2">We couldn't load your subscriptions right now. Please try again later.</p>
+        <Button 
+          onClick={() => window.location.reload()}
+          variant="outline"
+          className="border-red-800 text-red-800 hover:bg-red-100 mt-2"
+        >
+          Retry
+        </Button>
       </div>
     );
   }

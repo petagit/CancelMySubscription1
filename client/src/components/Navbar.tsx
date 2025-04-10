@@ -8,16 +8,37 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Loader2, User, LogOut } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useClerk, useUser } from "@clerk/clerk-react";
+import { CrownIcon } from "lucide-react";
 
 export default function Navbar() {
   const location = useRouterLocation();
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
   
   // Use Clerk to manage authentication
   const { isLoaded, isSignedIn, user } = useUser();
   const { signOut } = useClerk();
+  
+  // Check premium status
+  useEffect(() => {
+    if (isSignedIn) {
+      const checkPremiumStatus = async () => {
+        try {
+          const response = await fetch('/api/subscription-status');
+          if (response.ok) {
+            const data = await response.json();
+            setIsPremium(data.isPremium);
+          }
+        } catch (error) {
+          console.error('Error checking premium status:', error);
+        }
+      };
+      
+      checkPremiumStatus();
+    }
+  }, [isSignedIn]);
   
   // Handle sign out
   const handleSignOut = async () => {
@@ -127,9 +148,19 @@ export default function Navbar() {
             ) : isSignedIn && user ? (
               <div className="flex items-center gap-3">
                 {/* Display user email/name with white text */}
-                <span className="text-white font-medium hidden sm:block">
-                  {getUserDisplayName()}
-                </span>
+                <div className="hidden sm:flex items-center gap-2">
+                  <span className="text-white font-medium">
+                    {getUserDisplayName()}
+                  </span>
+                  
+                  {/* Premium badge */}
+                  {isPremium && (
+                    <div className="bg-gradient-to-r from-amber-400 to-yellow-300 text-black text-xs px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                      <CrownIcon className="h-3 w-3" />
+                      <span>PREMIUM</span>
+                    </div>
+                  )}
+                </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-8 w-8 rounded-full text-white hover:bg-gray-800">
@@ -151,6 +182,22 @@ export default function Navbar() {
                       <User className="mr-2 h-4 w-4" />
                       <span>{getUserDisplayName()}</span>
                     </DropdownMenuItem>
+                    
+                    {/* Show plan status in the dropdown */}
+                    <DropdownMenuItem className="cursor-default">
+                      {isPremium ? (
+                        <div className="flex items-center text-amber-600">
+                          <CrownIcon className="mr-2 h-4 w-4" />
+                          <span className="font-medium">Premium Plan</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center text-gray-600">
+                          <span className="mr-2 h-4 w-4">🔹</span>
+                          <span>Free Plan</span>
+                        </div>
+                      )}
+                    </DropdownMenuItem>
+                    
                     <DropdownMenuItem 
                       className="cursor-pointer text-red-500 focus:text-red-500" 
                       onClick={handleSignOut}
