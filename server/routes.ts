@@ -469,10 +469,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create checkout session for premium plan
   app.post("/api/create-checkout-session", isAuthenticated, async (req: Request, res: Response) => {
     try {
+      console.log("Creating checkout session - request received");
+      
       // Import and check if Stripe is available
       const { isStripeEnabled } = await import('./stripe');
+      console.log("Stripe available:", isStripeEnabled());
       
       if (!isStripeEnabled()) {
+        console.log("Stripe is disabled, returning error response");
         return res.status(503).json({ 
           message: "Payment services are temporarily unavailable", 
           stripeDisabled: true,

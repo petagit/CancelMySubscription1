@@ -10,6 +10,11 @@ try {
     console.warn('STRIPE_SECRET_KEY not found. Payment features will be disabled.');
     isStripeAvailable = false;
   } else {
+    // Log key information for debugging (mask most of the key)
+    const keyPrefix = process.env.STRIPE_SECRET_KEY.substring(0, 5);
+    const keyLength = process.env.STRIPE_SECRET_KEY.length;
+    console.log(`Attempting to initialize Stripe with key: ${keyPrefix}...${keyLength - 8} chars`);
+    
     stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
     console.log('Stripe initialized successfully.');
   }
