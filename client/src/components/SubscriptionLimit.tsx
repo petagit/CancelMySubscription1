@@ -27,13 +27,27 @@ export default function SubscriptionLimit({ guestId }: SubscriptionLimitProps) {
   useEffect(() => {
     const fetchSubscriptionStatus = async () => {
       try {
+        // Always ensure we have a URL parameter, either from auth or guestId
         let url = "/api/subscription-status";
-        if (guestId) url += `?guestId=${guestId}`;
-
+        if (guestId) {
+          url += `?guestId=${guestId}`;
+        } else if (!isSignedIn) {
+          // For users who aren't signed in and don't have a guestId, create one
+          const newGuestId = `guest_${Date.now()}`;
+          localStorage.setItem("guestId", newGuestId);
+          url += `?guestId=${newGuestId}`;
+        }
+        
+        console.log('Fetching subscription status from:', url);
         const response = await fetch(url);
+        
         if (response.ok) {
           const data = await response.json();
+          console.log('Subscription status data:', data);
           setStatus(data);
+        } else {
+          const errorText = await response.text();
+          console.error('Subscription status error:', response.status, errorText);
         }
       } catch (error) {
         console.error("Error fetching subscription status:", error);
