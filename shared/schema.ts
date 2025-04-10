@@ -7,6 +7,7 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   clerkId: text("clerk_id").unique(), // Add Clerk ID for integration
+  guestId: text("guest_id").unique(), // Add Guest ID for guest users
   
   // Payment related fields
   stripeCustomerId: text("stripe_customer_id").unique(),
@@ -18,6 +19,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
   clerkId: true,
+  guestId: true,
   stripeCustomerId: true,
   hasPaidPlan: true,
   maxSubscriptions: true,

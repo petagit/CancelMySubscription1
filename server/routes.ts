@@ -486,8 +486,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const userId = req.user?.id;
       const clerkUser = req.clerkUser;
+      const guestId = req.query.guestId as string | undefined;
       
-      if (!userId && !clerkUser) {
+      // Log authentication context
+      console.log("Checkout authentication context:", {
+        hasUserId: !!userId,
+        hasClerkUser: !!clerkUser,
+        hasGuestId: !!guestId
+      });
+      
+      if (!userId && !clerkUser && !guestId) {
         return res.status(401).json({ message: "Authentication required" });
       }
       
@@ -532,6 +540,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         userEmail = user.username; // Use username as email for regular users
+      } else if (guestId) {
+        // Guest user - create temporary user and convert to permanent on payment success
+        console.log("Processing checkout for guest user:", guestId);
+        
+        // Generate dynamic email/username for this guest
+        const timestamp = new Date().getTime();
+        userEmail = `guest_${guestId.substring(0, 8)}@example.com`;
+        userName = `Guest User ${timestamp.toString().substring(8)}`;
+        
+        // Create a new user
+        const guestUser = await storage.createUser({
+          username: userEmail,
+          password: `guest_${Math.random().toString(36).substring(2)}`, // Random password
+          guestId: guestId // Store the guest ID for reference
+        });
+        
+        dbUserId = guestUser.id;
+        console.log("Created temporary user for guest checkout:", dbUserId);
       } else {
         return res.status(401).json({ message: "Authentication required" });
       }
