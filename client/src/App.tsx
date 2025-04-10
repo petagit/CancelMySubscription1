@@ -62,6 +62,9 @@ function App() {
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
           
+          {/* App route - redirects to dashboard */}
+          <Route path="/app" element={<Dashboard />} />
+          
           {/* Protected routes using our custom ProtectedRoute component */}
           <Route 
             path="/dashboard" 

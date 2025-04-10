@@ -105,8 +105,8 @@ export default function Navbar() {
                   HOME
                 </span>
               </RouterLink>
-              <RouterLink to="/dashboard">
-                <span className={`text-white px-3 py-2 text-base font-medium uppercase tracking-wide cursor-pointer ${location.pathname === '/dashboard' ? 'underline' : ''}`}>
+              <RouterLink to="/app">
+                <span className={`text-white px-3 py-2 text-base font-medium uppercase tracking-wide cursor-pointer ${location.pathname === '/app' || location.pathname === '/dashboard' ? 'underline' : ''}`}>
                   APP
                 </span>
               </RouterLink>
