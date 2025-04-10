@@ -96,31 +96,63 @@ export default function SubscriptionLimit({ guestId }: SubscriptionLimitProps) {
   // Show different content based on whether user is premium or not
   if (status.isPremium) {
     return (
-      <div className="bg-gray-50 border border-green-200 rounded-lg p-4 mb-4">
+      <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-indigo-200 rounded-lg p-4 mb-4 shadow-sm">
         <div className="flex items-center">
-          <Check className="h-5 w-5 text-green-500 mr-2" />
-          <h3 className="text-lg font-medium text-green-700">Premium Plan</h3>
+          <Check className="h-5 w-5 text-indigo-600 mr-2" />
+          <h3 className="text-lg font-medium text-indigo-700">Premium Plan Active</h3>
         </div>
-        <p className="text-sm text-gray-600 mt-1">
-          You have unlimited subscription tracking access.
-        </p>
+        <div className="mt-2 flex items-center">
+          <div className="flex-1">
+            <p className="text-sm text-gray-700">
+              You have unlimited subscription tracking access. Thank you for being a premium member!
+            </p>
+            <ul className="mt-2 text-sm text-gray-600 space-y-1">
+              <li className="flex items-center">
+                <Check className="h-3 w-3 text-green-500 mr-1" /> Unlimited subscriptions
+              </li>
+              <li className="flex items-center">
+                <Check className="h-3 w-3 text-green-500 mr-1" /> Priority support
+              </li>
+              <li className="flex items-center">
+                <Check className="h-3 w-3 text-green-500 mr-1" /> Advanced analytics
+              </li>
+            </ul>
+          </div>
+          <div className="ml-4 bg-indigo-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
+            $10/month
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="bg-gray-50 border rounded-lg p-4 mb-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">Subscription Limit</h3>
+      <div className="flex flex-wrap justify-between items-start">
+        <div>
+          <h3 className="text-lg font-medium">Free Plan</h3>
+          <p className="text-sm text-gray-600">Limited to {status.subscriptionLimit} subscriptions</p>
+          <ul className="mt-2 text-sm text-gray-600 space-y-1">
+            <li className="flex items-center">
+              <Check className="h-3 w-3 text-green-500 mr-1" /> Track up to {status.subscriptionLimit} subscriptions
+            </li>
+            <li className="flex items-center">
+              <Check className="h-3 w-3 text-green-500 mr-1" /> Basic analytics
+            </li>
+            <li className="flex items-center">
+              <Check className="h-3 w-3 text-green-500 mr-1" /> CSV import/export
+            </li>
+          </ul>
+        </div>
         {isSignedIn && (
           <Button 
             size="sm" 
             onClick={handleUpgrade} 
             disabled={isLoading}
-            className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+            className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 whitespace-nowrap mt-2 md:mt-0"
           >
             <CreditCard className="mr-2 h-4 w-4" /> 
-            {isLoading ? "Loading..." : "Upgrade to Premium"}
+            {isLoading ? "Loading..." : "Upgrade to Premium ($10/month)"}
           </Button>
         )}
       </div>
@@ -147,7 +179,7 @@ export default function SubscriptionLimit({ guestId }: SubscriptionLimitProps) {
       
       {!isSignedIn && (
         <div className="mt-2 text-sm text-gray-600">
-          <p>Free accounts can track up to 10 subscriptions.</p>
+          <p>Guest accounts are limited to 5 subscriptions. Sign up for a free account to get 10 subscriptions.</p>
           <p>
             <Button 
               variant="link" 
@@ -164,7 +196,7 @@ export default function SubscriptionLimit({ guestId }: SubscriptionLimitProps) {
             >
               create an account
             </Button>{" "}
-            to upgrade to premium.
+            to access more features. Upgrade to premium ($10/month) for unlimited subscriptions.
           </p>
         </div>
       )}
