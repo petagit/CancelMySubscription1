@@ -25,9 +25,9 @@ export default function Blog() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-black mb-2">Blog</h1>
+        <h1 className="text-3xl font-bold text-black mb-2">Easy Guide:</h1>
         <p className="text-lg text-black mb-6">
-          Latest news, tips and advice on managing your subscriptions
+          The simpliest way to cancel subscription for everything. <a href="#" className="text-blue-600 hover:underline">Read more.</a>
         </p>
         
         {isLoading ? (
