@@ -3,14 +3,8 @@ import { clerkClient } from '@clerk/clerk-sdk-node';
 import { storage } from './storage';
 import { User } from '@shared/schema';
 
-// Make sure we're extending the same namespace as in clerk-auth.ts
-declare global {
-  namespace Express {
-    interface Request {
-      user?: { id: number } & Partial<User>;
-    }
-  }
-}
+// Note: we're not extending any namespace here as it's already defined in clerk-auth.ts
+// The user property will be set to a partial User object with at least the ID
 
 // Interface to hold converted Clerk user data
 interface ClerkUserData {
